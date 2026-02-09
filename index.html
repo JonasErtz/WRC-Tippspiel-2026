@@ -49,15 +49,14 @@ ul { text-align: left; }
 <script>
 // --- Firebase Config ---
 const firebaseConfig = {
-  apiKey: "AIzaSyBx6XHMMhlWpJgyeK7veKQ8i-fNVu4ohYU",
-  authDomain: "wrc-tippspiel-2026.firebaseapp.com",
-  databaseURL: "https://wrc-tippspiel-2026-default-rtdb.europe-west1.firebasedatabase.app/",
-  projectId: "wrc-tippspiel-2026",
-  storageBucket: "wrc-tippspiel-2026.firebasestorage.app",
-  messagingSenderId: "342694581633",
-  appId: "1:342694581633:web:133043efea71be6ddf8480"
+apiKey: "AIzaSyBx6XHMMhlWpJgyeK7veKQ8i-fNVu4ohYU",
+authDomain: "wrc-tippspiel-2026.firebaseapp.com",
+databaseURL: "https://wrc-tippspiel-2026-default-rtdb.europe-west1.firebasedatabase.app/",
+projectId: "wrc-tippspiel-2026",
+storageBucket: "wrc-tippspiel-2026.appspot.com",
+messagingSenderId: "342694581633",
+appId: "1:342694581633:web:133043efea71be6ddf8480"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
@@ -71,7 +70,6 @@ const rallyes = [
 let aktuelleRallyeIndex = 0;
 
 document.addEventListener("DOMContentLoaded", function() {
-
 // Dropdowns füllen
 ["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id=>{
 const select = document.getElementById(id);
