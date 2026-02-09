@@ -199,7 +199,7 @@ details.textContent=text; li.appendChild(details); liste.appendChild(li);
 });
 }
 
-function anzeigenSaison(){
+unction anzeigenSaison(){
 const saisonListe = document.getElementById("saisonRangliste");
 saisonListe.innerHTML="";
 
@@ -219,7 +219,6 @@ rallyeMap[name][i] = val.breakdown;
 
 ralliesProcessed++;
 if(ralliesProcessed === rallyes.length){ // Alle Rallyes geladen
-// Rangliste sortieren
 Object.entries(punkteMap).sort((a,b)=>b[1]-a[1]).forEach(([name,total])=>{
 const li = document.createElement("li");
 li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
@@ -235,14 +234,10 @@ breakdown.platz.forEach(p=>sum+=p.punkte);
 breakdown.powerstage.forEach(p=>sum+=p.punkte);
 sum += breakdown.ausfall?.punkte || 0;
 }
-let color = "red";
-if(sum>=7) color="green";
-else if(sum>0) color="orange";
-
-html += `${rallye.name}: <span style="color:${color}">${sum} Punkte</span><br>`;
+html += `${rallye.name}: ${sum} Punkte<br>`; // ✅ ohne Farbe
 });
 
-details.innerHTML = html; // <br> sorgt für Untereinander
+details.innerHTML = html;
 li.appendChild(details);
 saisonListe.appendChild(li);
 });
