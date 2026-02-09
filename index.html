@@ -63,11 +63,22 @@ const db = firebase.database();
 // --- Fahrer ---
 const fahrer = ["Ogier","Evans","Neuville","Katsuta","Fourmaux","Pajari","Solberg","Munster","McErlean","Paddon","Armstrong","Sordo","Lappi","Sesks","Bertelli"];
 
-// --- Rallyes 2026 (Beispiel, echte Ergebnisse nachtragen) ---
+// --- Rallyes 2026 ---
 const rallyes = [
-{ name:"Monte Carlo", rallyeStart:Date.UTC(2026,0,22,10,0,0), powerstageStart:Date.UTC(2026,0,25,15,0,0), endplatz:["Ogier","Evans","Neuville","Katsuta","Fourmaux"], powerstage:["Ogier","Evans","Neuville"], ausfall:"Solberg" },
-{ name:"Schweden", rallyeStart:Date.UTC(2026,1,9,4,20,0), powerstageStart:Date.UTC(2026,1,15,15,0,0), endplatz:["Rovanperä","Evans","Ogier","Neuville","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Ogier" }
-// ...weitere Rallyes hier ergänzen...
+{ name:"Monte Carlo", rallyeStart:Date.UTC(2026,0,22,10,0,0), powerstageStart:Date.UTC(2026,0,25,15,0,0), endplatz:[], powerstage:[], ausfall:"" },
+{ name:"Schweden", rallyeStart:Date.UTC(2026,1,12,10,0,0), powerstageStart:Date.UTC(2026,1,15,15,0,0), endplatz:[], powerstage:[], ausfall:"" },
+{ name:"Kenia", rallyeStart:Date.UTC(2026,2,5,10,0,0), powerstageStart:Date.UTC(2026,2,8,15,0,0), endplatz:[], powerstage:[], ausfall:"" },
+{ name:"Kroatien", rallyeStart:Date.UTC(2026,3,2,10,0,0), powerstageStart:Date.UTC(2026,3,5,15,0,0), endplatz:[], powerstage:[], ausfall:"" },
+{ name:"Gran Canaria", rallyeStart:Date.UTC(2026,3,16,10,0,0), powerstageStart:Date.UTC(2026,3,19,15,0,0), endplatz:[], powerstage:[], ausfall:"" },
+{ name:"Portugal", rallyeStart:Date.UTC(2026,4,7,10,0,0), powerstageStart:Date.UTC(2026,4,10,15,0,0), endplatz:[], powerstage:[], ausfall:"" },
+{ name:"Japan", rallyeStart:Date.UTC(2026,4,28,10,0,0), powerstageStart:Date.UTC(2026,4,31,15,0,0), endplatz:[], powerstage:[], ausfall:"" },
+{ name:"Griechenland", rallyeStart:Date.UTC(2026,5,18,10,0,0), powerstageStart:Date.UTC(2026,5,21,15,0,0), endplatz:[], powerstage:[], ausfall:"" },
+{ name:"Estland", rallyeStart:Date.UTC(2026,6,9,10,0,0), powerstageStart:Date.UTC(2026,6,12,15,0,0), endplatz:[], powerstage:[], ausfall:"" },
+{ name:"Finnland", rallyeStart:Date.UTC(2026,6,30,10,0,0), powerstageStart:Date.UTC(2026,7,2,15,0,0), endplatz:[], powerstage:[], ausfall:"" },
+{ name:"Paraguay", rallyeStart:Date.UTC(2026,8,3,10,0,0), powerstageStart:Date.UTC(2026,8,6,15,0,0), endplatz:[], powerstage:[], ausfall:"" },
+{ name:"Chile", rallyeStart:Date.UTC(2026,8,24,10,0,0), powerstageStart:Date.UTC(2026,8,27,15,0,0), endplatz:[], powerstage:[], ausfall:"" },
+{ name:"Sardinien", rallyeStart:Date.UTC(2026,9,15,10,0,0), powerstageStart:Date.UTC(2026,9,18,15,0,0), endplatz:[], powerstage:[], ausfall:"" },
+{ name:"Saudi Arabien", rallyeStart:Date.UTC(2026,10,5,10,0,0), powerstageStart:Date.UTC(2026,10,8,15,0,0), endplatz:[], powerstage:[], ausfall:"" }
 ];
 
 // --- Dropdowns ---
@@ -159,53 +170,33 @@ details.textContent=text; li.appendChild(details); liste.appendChild(li);
 });
 }
 
-// --- Saison-Rangliste ---
+// --- Saison-Rangliste mit Farben ---
 function anzeigenSaison(){
-const saisonListe = document.getElementById("saisonRangliste");
-saisonListe.innerHTML="";
-const aktuelleRallyeIndex = parseInt(document.getElementById("rallyeSelect").value);
+const saisonListe = document.getElementById("saisonRangliste"); saisonListe.innerHTML="";
+const punkteMap={}; const rallyeMap={};
 
-const punkteMap={};
-const rallyeMap={};
-
-// Daten aus allen Rallyes sammeln
-const promises = rallyes.map((r,i)=>{
-return db.ref('tipps/'+i).once('value').then(snap=>{
+rallyes.forEach((r,i)=>{
+db.ref('tipps/'+i).once('value', snap=>{
 const rDaten = snap.val()||{};
 Object.entries(rDaten).forEach(([name,val])=>{
 punkteMap[name]=(punkteMap[name]||0)+val.punkte;
 if(!rallyeMap[name]) rallyeMap[name]=[];
 rallyeMap[name][i]=val.breakdown;
 });
-});
-});
 
-// Erst nachdem alle Rallyes geladen sind
-Promise.all(promises).then(()=>{
+saisonListe.innerHTML="";
 Object.entries(punkteMap).sort((a,b)=>b[1]-a[1]).forEach(([name,total])=>{
-const li = document.createElement("li");
-li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
+const li = document.createElement("li"); li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
 const details = document.createElement("div"); details.className="punkte-breakdown";
 let html = "";
-
 rallyes.forEach((rallye,j)=>{
-const breakdown = rallyeMap[name][j];
-let sum=0;
+const breakdown = rallyeMap[name][j]; let sum=0;
 if(breakdown){ breakdown.platz.forEach(p=>sum+=p.punkte); breakdown.powerstage.forEach(p=>sum+=p.punkte); sum+=breakdown.ausfall?.punkte||0; }
-
-// Farbe nur für aktuelle Rallye
-let color = "black";
-if(j===aktuelleRallyeIndex){
-if(sum>=7) color="green";
-else if(sum>0) color="orange";
-}
-
-html += `<div>${rallye.name}: <span style="color:${color}">${sum} Punkte</span></div>`;
+let color = "red"; if(sum>=7) color="green"; else if(sum>0) color="orange";
+html += `${rallye.name}: <span style="color:${color}">${sum} Punkte</span><br>`;
 });
-
-details.innerHTML = html;
-li.appendChild(details);
-saisonListe.appendChild(li);
+details.innerHTML = html; li.appendChild(details); saisonListe.appendChild(li);
+});
 });
 });
 }
