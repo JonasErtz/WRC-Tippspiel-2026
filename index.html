@@ -81,7 +81,7 @@ const rallyes = [
 { name:"Saudi Arabien", endplatz:["Rovanperä","Ogier","Evans","Neuville","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Tänak", rallyeStart:new Date("2026-11-05T10:00:00"), powerstageStart:new Date("2026-11-08T15:00:00") }
 ];
 
-// --- JS Code für Dropdowns, Tipp abgeben, Punkte, Rangliste ---
+// --- Dropdowns füllen und Funktionen ---
 document.addEventListener("DOMContentLoaded", function() {
 ["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id=>{
 const select = document.getElementById(id);
@@ -101,10 +101,13 @@ rallyeSelect.value = 0;
 
 let aktuelleRallyeIndex = 0;
 resetFields();
+checkDeadline();
+tippsHolen();
 
 rallyeSelect.addEventListener("change", function(){
 aktuelleRallyeIndex = parseInt(this.value);
 resetFields();
+checkDeadline();
 tippsHolen();
 });
 
@@ -122,7 +125,6 @@ const rallye = rallyes[aktuelleRallyeIndex];
 let punkte = 0;
 let breakdown = { platz: [], powerstage: [], ausfall: 0 };
 
-// Endplatzierungen
 tipps.forEach((f,i)=>{
 let p=0;
 if(f===rallye.endplatz[i]) p=(i===0)?7:5;
@@ -131,7 +133,6 @@ breakdown.platz.push({fahrer:f,punkte:p});
 punkte+=p;
 });
 
-// Power Stage
 psTipps.forEach((f,i)=>{
 let p=0;
 if(f===rallye.powerstage[i]) p=3;
@@ -140,7 +141,6 @@ breakdown.powerstage.push({fahrer:f,punkte:p});
 punkte+=p;
 });
 
-// Erster Ausfall
 let ausfallP=0;
 if(ausfallTipp===rallye.ausfall){ ausfallP=3; punkte+=3; }
 breakdown.ausfall={fahrer:ausfallTipp,punkte:ausfallP};
@@ -148,9 +148,10 @@ breakdown.ausfall={fahrer:ausfallTipp,punkte:ausfallP};
 db.ref('tipps/'+aktuelleRallyeIndex+'/'+name).set({punkte,breakdown});
 });
 
-tippsHolen();
+setInterval(checkDeadline, 1000);
 });
 
+// --- Ranglisten Funktionen ---
 function tippsHolen(){
 const rallyeSelect = document.getElementById("rallyeSelect");
 const aktuelleRallyeIndex = parseInt(rallyeSelect.value);
@@ -209,6 +210,7 @@ saisonListe.appendChild(li);
 });
 }
 
+// --- Reset + Deadline ---
 function resetFields(){
 ["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id=>{
 document.getElementById(id).value="";
@@ -216,6 +218,31 @@ document.getElementById(id).disabled=false;
 document.getElementById(id).className="";
 });
 document.getElementById("name").value="";
+}
+
+function checkDeadline(){
+const now = new Date();
+const rallyeSelect = document.getElementById("rallyeSelect");
+const aktuelleRallyeIndex = parseInt(rallyeSelect.value);
+const rallye = rallyes[aktuelleRallyeIndex];
+
+const disablePlatz = now >= rallye.rallyeStart;
+["platz1","platz2","platz3","platz4","platz5","ausfall"].forEach(id=>{
+const elem = document.getElementById(id);
+elem.disabled = disablePlatz;
+elem.className = disablePlatz ? "disabled" : "";
+});
+
+const disablePS = now >= rallye.powerstageStart;
+["ps1","ps2","ps3"].forEach(id=>{
+const elem = document.getElementById(id);
+elem.disabled = disablePS;
+elem.className = disablePS ? "disabled" : "";
+});
+
+const tipButton = document.getElementById("tipButton");
+tipButton.disabled = disablePlatz && disablePS;
+tipButton.className = tipButton.disabled ? "disabled" : "";
 }
 </script>
 </body>
