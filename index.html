@@ -50,7 +50,7 @@ ul { text-align: left; }
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
-// --- Firebase Config (eingefügt) ---
+// --- Firebase Config ---
 const firebaseConfig = {
 apiKey: "AIzaSyBx6XHMMhlWpJgyeK7veKQ8i-fNVu4ohYU",
 authDomain: "wrc-tippspiel-2026.firebaseapp.com",
@@ -73,9 +73,11 @@ const rallyes = [
 
 let aktuelleRallyeIndex = 0;
 
-// --- Dropdowns füllen (einmalig) ---
-function dropdownFuellen(selectId) {
-const select = document.getElementById(selectId);
+// --- Alles starten nach DOM geladen ---
+document.addEventListener("DOMContentLoaded", function() {
+// Dropdowns füllen
+["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id => {
+const select = document.getElementById(id);
 select.innerHTML = `<option value="">${select.options[0]?.text || "Wählen"}</option>`;
 fahrer.forEach(f => {
 const option = document.createElement("option");
@@ -83,13 +85,29 @@ option.value = f;
 option.text = f;
 select.appendChild(option);
 });
-}
-["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(dropdownFuellen);
+});
 
-// --- Rallye Auswahl ---
+// Rallye Dropdown füllen
 const rallyeSelect = document.getElementById("rallyeSelect");
-rallyes.forEach((r,i)=>{ const option=document.createElement("option"); option.value=i; option.text=r.name; rallyeSelect.appendChild(option); });
+rallyes.forEach((r,i)=>{
+const option = document.createElement("option");
+option.value = i;
+option.text = r.name;
+rallyeSelect.appendChild(option);
+});
 rallyeSelect.value = 0;
+
+// Felder initial zurücksetzen
+resetFields();
+tippsHolen();
+
+// Rallye-Wechsel Listener
+rallyeSelect.addEventListener("change", function(){
+aktuelleRallyeIndex=parseInt(this.value);
+resetFields();
+tippsHolen();
+});
+});
 
 // --- Tipps abgeben ---
 document.getElementById("tipButton").addEventListener("click", function(){
@@ -185,11 +203,6 @@ if(allowPowerStage) ["ps1","ps2","ps3"].forEach(id=>document.getElementById(id).
 ["ps1","ps2","ps3"].forEach(id=>{ document.getElementById(id).disabled=!allowPowerStage; document.getElementById(id).className=!allowPowerStage?"disabled":""; });
 }
 
-// Rallye wechseln
-rallyeSelect.addEventListener("change", function(){ aktuelleRallyeIndex=parseInt(this.value); resetFields(); tippsHolen(); });
-
-resetFields();
-tippsHolen();
 </script>
 </body>
 </html>
