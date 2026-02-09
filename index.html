@@ -63,22 +63,22 @@ const db = firebase.database();
 // --- Fahrer ---
 const fahrer = ["Ogier","Evans","Neuville","Katsuta","Fourmaux","Pajari","Solberg","Munster","McErlean","Paddon","Armstrong","Sordo","Lappi","Sesks","Bertelli"];
 
-// --- Rallyes 2026 ---
+// --- Rallyes 2026 mit UTC Zeiten ---
 const rallyes = [
-{ name:"Monte Carlo", endplatz:["Ogier","Rovanperä","Neuville","Evans","Lappi"], powerstage:["Evans","Ogier","Rovanperä"], ausfall:"Greensmith", rallyeStart:new Date("2026-01-22T10:00:00"), powerstageStart:new Date("2026-01-25T15:00:00") },
-{ name:"Schweden", endplatz:["Rovanperä","Evans","Ogier","Neuville","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Suninen", rallyeStart:new Date("2026-02-12T10:00:00"), powerstageStart:new Date("2026-02-15T15:00:00") },
-{ name:"Kenia", endplatz:["Ogier","Evans","Neuville","Rovanperä","Lappi"], powerstage:["Evans","Ogier","Neuville"], ausfall:"Suninen", rallyeStart:new Date("2026-03-05T10:00:00"), powerstageStart:new Date("2026-03-08T15:00:00") },
-{ name:"Kroatien", endplatz:["Rovanperä","Ogier","Neuville","Evans","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Tänak", rallyeStart:new Date("2026-04-02T10:00:00"), powerstageStart:new Date("2026-04-05T15:00:00") },
-{ name:"Gran Canaria", endplatz:["Neuville","Ogier","Rovanperä","Evans","Lappi"], powerstage:["Ogier","Neuville","Evans"], ausfall:"Suninen", rallyeStart:new Date("2026-04-16T10:00:00"), powerstageStart:new Date("2026-04-19T15:00:00") },
-{ name:"Portugal", endplatz:["Rovanperä","Ogier","Evans","Neuville","Lappi"], powerstage:["Evans","Ogier","Rovanperä"], ausfall:"Tänak", rallyeStart:new Date("2026-05-07T10:00:00"), powerstageStart:new Date("2026-05-10T15:00:00") },
-{ name:"Japan", endplatz:["Ogier","Evans","Neuville","Rovanperä","Lappi"], powerstage:["Evans","Ogier","Rovanperä"], ausfall:"Suninen", rallyeStart:new Date("2026-05-28T10:00:00"), powerstageStart:new Date("2026-05-31T15:00:00") },
-{ name:"Griechenland", endplatz:["Rovanperä","Ogier","Evans","Neuville","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Tänak", rallyeStart:new Date("2026-06-18T10:00:00"), powerstageStart:new Date("2026-06-21T15:00:00") },
-{ name:"Estland", endplatz:["Ogier","Rovanperä","Evans","Neuville","Lappi"], powerstage:["Evans","Ogier","Rovanperä"], ausfall:"Suninen", rallyeStart:new Date("2026-07-09T10:00:00"), powerstageStart:new Date("2026-07-12T15:00:00") },
-{ name:"Finnland", endplatz:["Rovanperä","Ogier","Neuville","Evans","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Tänak", rallyeStart:new Date("2026-07-30T10:00:00"), powerstageStart:new Date("2026-08-02T15:00:00") },
-{ name:"Paraguay", endplatz:["Ogier","Evans","Neuville","Rovanperä","Lappi"], powerstage:["Evans","Ogier","Neuville"], ausfall:"Suninen", rallyeStart:new Date("2026-09-03T10:00:00"), powerstageStart:new Date("2026-09-06T15:00:00") },
-{ name:"Chile", endplatz:["Rovanperä","Ogier","Evans","Neuville","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Tänak", rallyeStart:new Date("2026-09-24T10:00:00"), powerstageStart:new Date("2026-09-27T15:00:00") },
-{ name:"Sardinien", endplatz:["Ogier","Rovanperä","Evans","Neuville","Lappi"], powerstage:["Evans","Ogier","Rovanperä"], ausfall:"Suninen", rallyeStart:new Date("2026-10-15T10:00:00"), powerstageStart:new Date("2026-10-18T15:00:00") },
-{ name:"Saudi Arabien", endplatz:["Rovanperä","Ogier","Evans","Neuville","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Tänak", rallyeStart:new Date("2026-11-05T10:00:00"), powerstageStart:new Date("2026-11-08T15:00:00") }
+{ name:"Monte Carlo", endplatz:["Ogier","Rovanperä","Neuville","Evans","Lappi"], powerstage:["Evans","Ogier","Rovanperä"], ausfall:"Greensmith", rallyeStart:Date.UTC(2026,0,22,10,0,0), powerstageStart:Date.UTC(2026,0,25,15,0,0) },
+{ name:"Schweden", endplatz:["Rovanperä","Evans","Ogier","Neuville","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Suninen", rallyeStart:Date.UTC(2026,1,12,10,0,0), powerstageStart:Date.UTC(2026,1,15,15,0,0) },
+{ name:"Kenia", endplatz:["Ogier","Evans","Neuville","Rovanperä","Lappi"], powerstage:["Evans","Ogier","Neuville"], ausfall:"Suninen", rallyeStart:Date.UTC(2026,2,5,10,0,0), powerstageStart:Date.UTC(2026,2,8,15,0,0) },
+{ name:"Kroatien", endplatz:["Rovanperä","Ogier","Neuville","Evans","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Tänak", rallyeStart:Date.UTC(2026,3,2,10,0,0), powerstageStart:Date.UTC(2026,3,5,15,0,0) },
+{ name:"Gran Canaria", endplatz:["Neuville","Ogier","Rovanperä","Evans","Lappi"], powerstage:["Ogier","Neuville","Evans"], ausfall:"Suninen", rallyeStart:Date.UTC(2026,3,16,10,0,0), powerstageStart:Date.UTC(2026,3,19,15,0,0) },
+{ name:"Portugal", endplatz:["Rovanperä","Ogier","Evans","Neuville","Lappi"], powerstage:["Evans","Ogier","Rovanperä"], ausfall:"Tänak", rallyeStart:Date.UTC(2026,4,7,10,0,0), powerstageStart:Date.UTC(2026,4,10,15,0,0) },
+{ name:"Japan", endplatz:["Ogier","Evans","Neuville","Rovanperä","Lappi"], powerstage:["Evans","Ogier","Rovanperä"], ausfall:"Suninen", rallyeStart:Date.UTC(2026,4,28,10,0,0), powerstageStart:Date.UTC(2026,4,31,15,0,0) },
+{ name:"Griechenland", endplatz:["Rovanperä","Ogier","Evans","Neuville","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Tänak", rallyeStart:Date.UTC(2026,5,18,10,0,0), powerstageStart:Date.UTC(2026,5,21,15,0,0) },
+{ name:"Estland", endplatz:["Ogier","Rovanperä","Evans","Neuville","Lappi"], powerstage:["Evans","Ogier","Rovanperä"], ausfall:"Suninen", rallyeStart:Date.UTC(2026,6,9,10,0,0), powerstageStart:Date.UTC(2026,6,12,15,0,0) },
+{ name:"Finnland", endplatz:["Rovanperä","Ogier","Neuville","Evans","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Tänak", rallyeStart:Date.UTC(2026,6,30,10,0,0), powerstageStart:Date.UTC(2026,7,2,15,0,0) },
+{ name:"Paraguay", endplatz:["Ogier","Evans","Neuville","Rovanperä","Lappi"], powerstage:["Evans","Ogier","Neuville"], ausfall:"Suninen", rallyeStart:Date.UTC(2026,8,3,10,0,0), powerstageStart:Date.UTC(2026,8,6,15,0,0) },
+{ name:"Chile", endplatz:["Rovanperä","Ogier","Evans","Neuville","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Tänak", rallyeStart:Date.UTC(2026,8,24,10,0,0), powerstageStart:Date.UTC(2026,8,27,15,0,0) },
+{ name:"Sardinien", endplatz:["Ogier","Rovanperä","Evans","Neuville","Lappi"], powerstage:["Evans","Ogier","Rovanperä"], ausfall:"Suninen", rallyeStart:Date.UTC(2026,9,15,10,0,0), powerstageStart:Date.UTC(2026,9,18,15,0,0) },
+{ name:"Saudi Arabien", endplatz:["Rovanperä","Ogier","Evans","Neuville","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Tänak", rallyeStart:Date.UTC(2026,10,5,10,0,0), powerstageStart:Date.UTC(2026,10,8,15,0,0) }
 ];
 
 // --- Dropdowns füllen und Funktionen ---
@@ -165,7 +165,7 @@ anzeigenSaison();
 function anzeigen(daten){
 const liste = document.getElementById("rangliste");
 liste.innerHTML="";
-const now = new Date();
+const now = Date.now();
 const rallyeSelect = document.getElementById("rallyeSelect");
 const aktuelleRallyeIndex = parseInt(rallyeSelect.value);
 const rallye = rallyes[aktuelleRallyeIndex];
@@ -221,7 +221,7 @@ document.getElementById("name").value="";
 }
 
 function checkDeadline(){
-const now = new Date();
+const now = Date.now();
 const rallyeSelect = document.getElementById("rallyeSelect");
 const aktuelleRallyeIndex = parseInt(rallyeSelect.value);
 const rallye = rallyes[aktuelleRallyeIndex];
