@@ -53,6 +53,7 @@ ul { text-align: left; }
 const firebaseConfig = {
 apiKey: "AIzaSyBx6XHMMhlWpJgyeK7veKQ8i-fNVu4ohYU",
 authDomain: "wrc-tippspiel-2026.firebaseapp.com",
+databaseURL: "https://wrc-tippspiel-2026-default-rtdb.firebaseio.com/", // <--- ECHTE URL HIER
 projectId: "wrc-tippspiel-2026",
 storageBucket: "wrc-tippspiel-2026.firebasestorage.app",
 messagingSenderId: "342694581633",
@@ -105,8 +106,6 @@ tippsHolen();
 document.getElementById("tipButton").addEventListener("click", function(){
 const now = new Date();
 const rallye = rallyes[aktuelleRallyeIndex];
-const allowEndplatz = now < rallye.rallyeStart;
-const allowPowerStage = now < rallye.powerstageStart;
 
 const name = document.getElementById("name").value.trim();
 if(!name){ alert("Bitte Name eingeben!"); return; }
@@ -115,10 +114,7 @@ const tipps = [ document.getElementById("platz1").value, document.getElementById
 const psTipps = [ document.getElementById("ps1").value, document.getElementById("ps2").value, document.getElementById("ps3").value ];
 const ausfallTipp = document.getElementById("ausfall").value;
 
-if((allowEndplatz && tipps.includes("")) || (allowPowerStage && psTipps.includes("")) || (allowEndplatz && !ausfallTipp)){
-alert("Bitte alle Felder ausfüllen!");
-return;
-}
+if(tipps.includes("") || psTipps.includes("") || !ausfallTipp){ alert("Bitte alle Felder ausfüllen!"); return; }
 
 let breakdown = { platz: [], powerstage: [], ausfall: 0 };
 let punkte = 0;
@@ -163,7 +159,6 @@ const now = new Date();
 const rallye = rallyes[aktuelleRallyeIndex];
 
 Object.entries(daten).forEach(([name,val])=>{
-// Zeige Tipp, wenn Deadline vorbei oder eigener Tipp
 if(now > rallye.rallyeStart || name === ownName){
 const li=document.createElement("li");
 li.textContent=`${name} – ${val.punkte} Punkte`;
@@ -201,15 +196,12 @@ saisonListe.appendChild(li);
 function resetFields(){
 const now = new Date();
 const rallye = rallyes[aktuelleRallyeIndex];
-const allowEndplatz = now < rallye.rallyeStart;
-const allowPowerStage = now < rallye.powerstageStart;
 
 document.getElementById("name").value="";
-if(allowEndplatz) ["platz1","platz2","platz3","platz4","platz5","ausfall"].forEach(id=>document.getElementById(id).value="");
-if(allowPowerStage) ["ps1","ps2","ps3"].forEach(id=>document.getElementById(id).value="");
+["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id=>document.getElementById(id).value="");
 
-["platz1","platz2","platz3","platz4","platz5","ausfall"].forEach(id=>{ document.getElementById(id).disabled=!allowEndplatz; document.getElementById(id).className=!allowEndplatz?"disabled":""; });
-["ps1","ps2","ps3"].forEach(id=>{ document.getElementById(id).disabled=!allowPowerStage; document.getElementById(id).className=!allowPowerStage?"disabled":""; });
+["platz1","platz2","platz3","platz4","platz5","ausfall"].forEach(id=>{ document.getElementById(id).disabled=false; document.getElementById(id).className=""; });
+["ps1","ps2","ps3"].forEach(id=>{ document.getElementById(id).disabled=false; document.getElementById(id).className=""; });
 }
 </script>
 </body>
