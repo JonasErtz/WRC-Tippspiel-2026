@@ -4,11 +4,54 @@
 <meta charset="UTF-8">
 <title>WRC Tippspiel 2026</title>
 <style>
-body { font-family: Arial; max-width: 700px; margin: auto; text-align: center; }
-input, select, button { margin: 5px; padding: 8px; width: 95%; }
+
+html, body {
+height: 100%;
+margin: 0;
+padding: 0;
+}
+
+body {
+font-family: Arial;
+max-width: 700px;
+margin: auto;
+text-align: center;
+color: black;
+position: relative; /* wichtig für #background */
+}
+
+h1, h2, h3 {
+color: black;
+}
+
+#background {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)),
+url('images/deinBild.jpg') center/cover no-repeat;
+z-index: -1;
+}
+
+input, select, button {
+margin: 5px;
+padding: 8px;
+width: 95%;
+}
+
 h2 { margin-top: 30px; }
+
 ul { text-align: left; }
-.punkte-breakdown { font-size: 0.9em; color: #333; margin-left: 20px; white-space: pre-line; }
+
+.punkte-breakdown {
+font-size: 0.9em;
+color: #333;
+margin-left: 20px;
+white-space: pre-line;
+}
+
 .disabled { background-color: #ddd; }
 
 .deadline-text {
@@ -16,8 +59,13 @@ font-size: 0.85em;
 color: #666;
 margin-bottom: 10px;
 }
-</style></head>
+
+</style>
+</head>
+
 <body>
+<!-- Hintergrundbild -->
+<div id="background"></div>
 
 <h1>🏁 WRC Tippspiel 2026</h1>
 <p>Wähle eine Rallye und tippe!</p>
@@ -96,7 +144,8 @@ rallyeStart: Date.UTC(2026,0,22,15,5,0),
 powerstageStart: Date.UTC(2026,0,25,12,15,0),
 endplatz: ["Solberg","Evans","Ogier","Fourmaux","Neuville"],
 powerstage: ["Evans","Solberg","Ogier"],
-ausfall: "McErlean"
+ausfall: "McErlean",
+bgImage: "images/montecarlo.jpg"
 },
 {
 name:"Schweden",
@@ -104,7 +153,8 @@ rallyeStart: Date.UTC(2026,1,12,18,5,0),
 powerstageStart: Date.UTC(2026,1,15,11,15,0),
 endplatz: [],
 powerstage: [],
-ausfall: ""
+ausfall: "",
+bgImage: "images/schweden.jpg"
 },
 {
 name:"Kenia",
@@ -287,6 +337,7 @@ if(currentUser) document.getElementById("name").value = currentUser;
 checkDeadline();
 tippsHolen();
 ladeEigeneTipps();
+updateBackground();
 });
 
 setInterval(checkDeadline,1000);
@@ -491,6 +542,38 @@ const time = d.toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
 el.innerHTML = `⏰ Tippabgabe bis: ${date} – ${time} Uhr`;
 }
 
+function updateBackground() {
+const rallyeIndex = parseInt(document.getElementById("rallyeSelect").value);
+const rallye = rallyes[rallyeIndex];
+
+// Hintergrundbild der Rallye anzeigen
+// Wenn die Rallye ein spezielles Bild hat, z.B. rallye.bgImage
+if(rallye.bgImage){
+document.getElementById("background").style.background =
+`linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)),
+url('${rallye.bgImage}') center/cover no-repeat`;
+} else {
+// Standardbild
+document.getElementById("background").style.background =
+`linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)),
+url('images/deinBild.jpg') center/cover no-repeat`;
+}
+}
+
+// Beim Laden & bei Rallyewechsel aufrufen
+document.addEventListener("DOMContentLoaded", updateBackground);
+document.getElementById("rallyeSelect").addEventListener("change", updateBackground);
+
+
+// Eventlistener für Rallyewechsel
+rallyeSelect.addEventListener("change", function(){
+resetFields();
+if(currentUser) document.getElementById("name").value = currentUser;
+checkDeadline();
+tippsHolen();
+ladeEigeneTipps();
+updateBackground(); // <- hier das Rallye-Bild wechseln
+});
 setInterval(() => {
 checkDeadline();
 updateCountdowns();
