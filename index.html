@@ -10,8 +10,13 @@ h2 { margin-top: 30px; }
 ul { text-align: left; }
 .punkte-breakdown { font-size: 0.9em; color: #333; margin-left: 20px; white-space: pre-line; }
 .disabled { background-color: #ddd; }
-</style>
-</head>
+
+.deadline-text {
+font-size: 0.85em;
+color: #666;
+margin-bottom: 10px;
+}
+</style></head>
 <body>
 
 <h1>🏁 WRC Tippspiel 2026</h1>
@@ -28,6 +33,10 @@ ul { text-align: left; }
 </div>
 
 <h3>Endplatzierungen (Plätze 1–5)</h3>
+<div class="deadline-text">
+<div id="deadlinePlatzFix"></div>
+<div id="deadlinePlatz"></div>
+</div>
 <select id="platz1"><option value="">Platz 1 wählen</option></select>
 <select id="platz2"><option value="">Platz 2 wählen</option></select>
 <select id="platz3"><option value="">Platz 3 wählen</option></select>
@@ -35,12 +44,19 @@ ul { text-align: left; }
 <select id="platz5"><option value="">Platz 5 wählen</option></select>
 
 <h3>Power Stage (Top 3)</h3>
+<div class="deadline-text">
+<div id="deadlinePSFix"></div>
+<div id="deadlinePS"></div>
+</div>
 <select id="ps1"><option value="">PS Platz 1 wählen</option></select>
 <select id="ps2"><option value="">PS Platz 2 wählen</option></select>
 <select id="ps3"><option value="">PS Platz 3 wählen</option></select>
 
 <h3>Erster Ausfall</h3>
-<select id="ausfall"><option value="">Fahrer wählen</option></select>
+<div class="deadline-text">
+<div id="deadlineAusfallFix"></div>
+<div id="deadlineAusfall"></div>
+</div><select id="ausfall"><option value="">Fahrer wählen</option></select>
 
 <button id="tipButton">Tipp abgeben</button>
 
@@ -70,22 +86,22 @@ const db = firebase.database();
 let currentUser = null;
 
 // ===================== FAHRER =====================
-const fahrer = ["Ogier","Evans","Neuville","Katsuta","Fourmaux","Pajari","Solberg","Munster","McErlean","Paddon","Armstrong","Sordo","Lappi","Sesks","Bertelli","-"];
+const fahrer = ["Armstron","Bertelli","Evans","Fourmaux","Katsuta","Lappi","McErlean","Munster","Neuville","Ogier","Paddon","Pajari","Sesks","Solberg","Sordo","-"];
 
 // ===================== RALLYES =====================
 const rallyes = [
 {
 name:"Monte Carlo",
-rallyeStart: Date.UTC(2026,1,9,18,30,0),
-powerstageStart: Date.UTC(2026,1,9,40,0,0),
+rallyeStart: Date.UTC(2026,0,22,15,5,0),
+powerstageStart: Date.UTC(2026,0,25,12,15,0),
 endplatz: ["Solberg","Evans","Ogier","Fourmaux","Neuville"],
 powerstage: ["Evans","Solberg","Ogier"],
 ausfall: "McErlean"
 },
 {
 name:"Schweden",
-rallyeStart: Date.UTC(2026,1,12,10,0,0),
-powerstageStart: Date.UTC(2026,1,15,15,0,0),
+rallyeStart: Date.UTC(2026,1,12,18,5,0),
+powerstageStart: Date.UTC(2026,1,15,11,15,0),
 endplatz: [],
 powerstage: [],
 ausfall: ""
@@ -248,7 +264,18 @@ if(tipps.includes("") || psTipps.includes("") || !ausfallTipp){ alert("Bitte all
 const rallye=rallyes[parseInt(rallyeSelect.value)];
 let punkte=0; let breakdown={platz:[],powerstage:[],ausfall:0};
 tipps.forEach((f,i)=>{ let p=0; if(f===rallye.endplatz[i]) p=(i===0)?7:5; else if(rallye.endplatz.includes(f)) p=2; breakdown.platz.push({fahrer:f,punkte:p}); punkte+=p; });
-psTipps.forEach((f,i)=>{ let p=0; if(f===rallye.powerstage[i]) p=3; else if(rallye.powerstage.includes(f)) p=2; breakdown.powerstage.push({fahrer:f,punkte:p}); punkte+=p; });
+psTipps.forEach((f,i)=>{
+let p = 0;
+
+if(f === rallye.powerstage[i]) {
+p = (i === 0) ? 4 : 3; // 🟢 Platz 1 = 4 Punkte, Platz 2+3 = 3 Punkte
+}
+else if(rallye.powerstage.includes(f)) {
+p = 2;
+}
+
+breakdown.powerstage.push({fahrer:f,punkte:p});
+punkte += p; });
 let ausfallP=0; if(ausfallTipp===rallye.ausfall){ ausfallP=3; punkte+=3; } breakdown.ausfall={fahrer:ausfallTipp,punkte:ausfallP};
 
 db.ref('tipps/'+parseInt(rallyeSelect.value)+'/'+currentUser).set({punkte,breakdown}).then(()=>ladeEigeneTipps());
@@ -296,7 +323,9 @@ const rallyeIndex = parseInt(document.getElementById("rallyeSelect").value);
 const rallye = rallyes[rallyeIndex];
 const ownName = document.getElementById("name").value.trim();
 
-Object.entries(daten).forEach(([name,val])=>{
+Object.entries(daten)
+.sort((a,b) => b[1].punkte - a[1].punkte)
+.forEach(([name,val])=>{
 // Sichtbarkeit prüfen: Plätze ab Rallyestart, Power Stage ab Power Stage Start, eigene Tipps immer sichtbar
 const showPlatz = now >= rallye.rallyeStart || name === ownName;
 const showPS = now >= rallye.powerstageStart || name === ownName;
@@ -417,6 +446,66 @@ const elem=document.getElementById(id); elem.disabled=disablePS; elem.className=
 });
 const tipButton=document.getElementById("tipButton"); tipButton.disabled=disablePlatz && disablePS; tipButton.className=tipButton.disabled?"disabled":"";
 }
+
+function updateCountdowns(){
+const rallye = rallyes[parseInt(document.getElementById("rallyeSelect").value)];
+
+setFixedDeadline("deadlinePlatzFix", rallye.rallyeStart);
+setFixedDeadline("deadlineAusfallFix", rallye.rallyeStart);
+setFixedDeadline("deadlinePSFix", rallye.powerstageStart);
+
+setCountdown("deadlinePlatz", rallye.rallyeStart);
+setCountdown("deadlineAusfall", rallye.rallyeStart);
+setCountdown("deadlinePS", rallye.powerstageStart);
+}
+
+function setCountdown(elementId, timestamp){
+const el = document.getElementById(elementId);
+if(!el) return;
+
+const now = Date.now();
+const diff = timestamp - now;
+
+if(diff <= 0){
+el.innerHTML = "⛔ Deadline abgelaufen";
+el.style.color = "red";
+return;
+}
+
+const h = Math.floor(diff / 1000 / 60 / 60);
+const m = Math.floor((diff / 1000 / 60) % 60);
+const s = Math.floor((diff / 1000) % 60);
+
+el.innerHTML = `⏳ Deadline in ${h}h ${m}m ${s}s`;
+el.style.color = "#555";
+}
+
+function setFixedDeadline(elementId, timestamp){
+const el = document.getElementById(elementId);
+if(!el) return;
+
+const d = new Date(timestamp);
+const date = d.toLocaleDateString("de-DE");
+const time = d.toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
+
+el.innerHTML = `⏰ Tippabgabe bis: ${date} – ${time} Uhr`;
+}
+
+setInterval(() => {
+checkDeadline();
+updateCountdowns();
+}, 1000);
+
+//--------------- DEADLINES eingeben---------------------
+document.getElementById("deadlinePlatz").textContent =
+"⏰ Tippabgabe bis: Rallye-Start";
+
+document.getElementById("deadlinePS").textContent =
+"⏰ Tippabgabe bis: Start Power Stage";
+
+document.getElementById("deadlineAusfall").textContent =
+"⏰ Tippabgabe bis: Rallye-Start";
+
 </script>
 </body>
 </html>
