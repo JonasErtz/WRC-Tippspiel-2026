@@ -199,6 +199,59 @@ details.textContent=text; li.appendChild(details); liste.appendChild(li);
 });
 }
 
+function anzeigenSaison(){
+const saisonListe = document.getElementById("saisonRangliste");
+saisonListe.innerHTML="";
+
+const punkteMap = {}; // Gesamtpunkte pro Fahrer
+const rallyeMap = {}; // Punkte pro Rallye pro Fahrer
+
+let ralliesProcessed = 0;
+
+rallyes.forEach((r,i)=>{
+db.ref('tipps/'+i).once('value').then(snap=>{
+const rDaten = snap.val()||{};
+Object.entries(rDaten).forEach(([name,val])=>{
+punkteMap[name] = (punkteMap[name]||0) + val.punkte;
+if(!rallyeMap[name]) rallyeMap[name] = [];
+rallyeMap[name][i] = val.breakdown;
+});
+
+ralliesProcessed++;
+if(ralliesProcessed === rallyes.length){ // Alle Rallyes geladen
+// Rangliste sortieren
+Object.entries(punkteMap).sort((a,b)=>b[1]-a[1]).forEach(([name,total])=>{
+const li = document.createElement("li");
+li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
+const details = document.createElement("div");
+details.className = "punkte-breakdown";
+
+let html = "";
+rallyes.forEach((rallye,j)=>{
+const breakdown = rallyeMap[name][j];
+let sum=0;
+if(breakdown){
+breakdown.platz.forEach(p=>sum+=p.punkte);
+breakdown.powerstage.forEach(p=>sum+=p.punkte);
+sum += breakdown.ausfall?.punkte || 0;
+}
+// Farbe nach Punktzahl
+let color = "red";
+if(sum>=7) color="green";
+else if(sum>0) color="orange";
+
+html += `${rallye.name}: <span style="color:${color}">${sum} Punkte</span>\n`;
+});
+
+details.textContent = html;
+li.appendChild(details);
+saisonListe.appendChild(li);
+});
+}
+});
+});
+}
+
 // ===================== RESET & DEADLINE =====================
 function resetFields(){
 ["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id=>{
