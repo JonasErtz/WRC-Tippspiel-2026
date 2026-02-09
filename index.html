@@ -81,7 +81,7 @@ const rallyes = [
 { name:"Saudi Arabien", endplatz:["Rovanperä","Ogier","Evans","Neuville","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Tänak", rallyeStart:Date.UTC(2026,10,5,10,0,0), powerstageStart:Date.UTC(2026,10,8,15,0,0) }
 ];
 
-// --- Dropdowns füllen und Funktionen ---
+// --- Dropdowns und Event Listeners ---
 document.addEventListener("DOMContentLoaded", function() {
 ["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id=>{
 const select = document.getElementById(id);
@@ -99,13 +99,10 @@ rallyeSelect.appendChild(option);
 });
 rallyeSelect.value = 0;
 
-let aktuelleRallyeIndex = 0;
-resetFields();
 checkDeadline();
 tippsHolen();
 
 rallyeSelect.addEventListener("change", function(){
-aktuelleRallyeIndex = parseInt(this.value);
 resetFields();
 checkDeadline();
 tippsHolen();
@@ -121,7 +118,7 @@ const ausfallTipp = document.getElementById("ausfall").value;
 
 if(tipps.includes("") || psTipps.includes("") || !ausfallTipp){ alert("Bitte alle Felder ausfüllen!"); return; }
 
-const rallye = rallyes[aktuelleRallyeIndex];
+const rallye = rallyes[parseInt(document.getElementById("rallyeSelect").value)];
 let punkte = 0;
 let breakdown = { platz: [], powerstage: [], ausfall: 0 };
 
@@ -145,13 +142,13 @@ let ausfallP=0;
 if(ausfallTipp===rallye.ausfall){ ausfallP=3; punkte+=3; }
 breakdown.ausfall={fahrer:ausfallTipp,punkte:ausfallP};
 
-db.ref('tipps/'+aktuelleRallyeIndex+'/'+name).set({punkte,breakdown});
+db.ref('tipps/'+parseInt(document.getElementById("rallyeSelect").value)+'/'+name).set({punkte,breakdown});
 });
 
 setInterval(checkDeadline, 1000);
 });
 
-// --- Ranglisten Funktionen ---
+// --- Funktionen ---
 function tippsHolen(){
 const rallyeSelect = document.getElementById("rallyeSelect");
 const aktuelleRallyeIndex = parseInt(rallyeSelect.value);
@@ -210,7 +207,6 @@ saisonListe.appendChild(li);
 });
 }
 
-// --- Reset + Deadline ---
 function resetFields(){
 ["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id=>{
 document.getElementById(id).value="";
