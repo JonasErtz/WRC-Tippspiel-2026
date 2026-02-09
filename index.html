@@ -235,15 +235,14 @@ breakdown.platz.forEach(p=>sum+=p.punkte);
 breakdown.powerstage.forEach(p=>sum+=p.punkte);
 sum += breakdown.ausfall?.punkte || 0;
 }
-// Farbe nach Punktzahl
 let color = "red";
 if(sum>=7) color="green";
 else if(sum>0) color="orange";
 
-html += `${rallye.name}: <span style="color:${color}">${sum} Punkte</span>\n`;
+html += `${rallye.name}: <span style="color:${color}">${sum} Punkte</span><br>`;
 });
 
-details.textContent = html;
+details.innerHTML = html; // <br> sorgt für Untereinander
 li.appendChild(details);
 saisonListe.appendChild(li);
 });
