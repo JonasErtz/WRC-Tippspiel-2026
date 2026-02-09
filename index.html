@@ -59,9 +59,8 @@ const firebaseConfig = {
   messagingSenderId: "342694581633",
   appId: "1:342694581633:web:133043efea71be6ddf8480"
 };
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
 // --- Fahrer ---
 const fahrer = ["Ogier","Rovanperä","Neuville","Evans","Lappi","Suninen","Greensmith","Tänak"];
@@ -74,10 +73,16 @@ const rallyes = [
 
 let aktuelleRallyeIndex = 0;
 
-// --- Dropdowns füllen ---
+// --- Dropdowns füllen (einmalig) ---
 function dropdownFuellen(selectId) {
 const select = document.getElementById(selectId);
-fahrer.forEach(f => { const option=document.createElement("option"); option.value=f; option.text=f; select.appendChild(option); });
+select.innerHTML = `<option value="">${select.options[0]?.text || "Wählen"}</option>`;
+fahrer.forEach(f => {
+const option = document.createElement("option");
+option.value = f;
+option.text = f;
+select.appendChild(option);
+});
 }
 ["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(dropdownFuellen);
 
@@ -105,7 +110,6 @@ if((allowEndplatz && tipps.includes("")) || (allowPowerStage && psTipps.includes
 // --- Punkteberechnung ---
 let breakdown = { platz: [], powerstage: [], ausfall: 0 };
 let punkte = 0;
-
 tipps.forEach((fahrerName,index)=>{ let punkt=0; if(fahrerName===rallye.endplatz[index]) punkt=(index===0)?7:5; else if(rallye.endplatz.includes(fahrerName)) punkt=2; breakdown.platz.push({fahrer:fahrerName,punkte:punkt}); punkte+=punkt; });
 psTipps.forEach((fahrerName,index)=>{ let punkt=0; if(fahrerName===rallye.powerstage[index]) punkt=3; else if(rallye.powerstage.includes(fahrerName)) punkt=2; breakdown.powerstage.push({fahrer:fahrerName,punkte:punkt}); punkte+=punkt; });
 let ausfallPunkte=0; if(ausfallTipp===rallye.ausfall){ ausfallPunkte=3; punkte+=3; } breakdown.ausfall={fahrer:ausfallTipp,punkte:ausfallPunkte};
@@ -115,14 +119,14 @@ const ref = db.ref('tipps/'+aktuelleRallyeIndex+'/'+name);
 ref.set({ punkte, breakdown });
 });
 
-// --- Tipps live abrufen und Ranglisten anzeigen ---
+// --- Tipps live abrufen ---
 function tippsHolen(){
 const rallyeIndex = aktuelleRallyeIndex;
 const ref = db.ref('tipps/'+rallyeIndex);
 ref.on('value', snapshot=>{
 const daten = snapshot.val() || {};
 anzeigen(daten);
-anzeigenSaison(daten);
+anzeigenSaison();
 });
 }
 
@@ -145,18 +149,15 @@ liste.appendChild(li);
 }
 
 // --- Saison-Rangliste ---
-function anzeigenSaison(daten){
+function anzeigenSaison(){
 const saisonListe=document.getElementById("saisonRangliste");
 saisonListe.innerHTML="";
 const punkteMap={};
-// Alle Rallyes
 rallyes.forEach((r,i)=>{
-const rallyeRef=db.ref('tipps/'+i);
-rallyeRef.once('value', snap=>{
+db.ref('tipps/'+i).once('value', snap=>{
 const rDaten=snap.val()||{};
 Object.entries(rDaten).forEach(([name,val])=>{
 punkteMap[name]=(punkteMap[name]||0)+val.punkte;
-// einmal pro Spieler anzeigen
 });
 // Nach allen Rallyes sortieren
 saisonListe.innerHTML="";
@@ -184,12 +185,11 @@ if(allowPowerStage) ["ps1","ps2","ps3"].forEach(id=>document.getElementById(id).
 ["ps1","ps2","ps3"].forEach(id=>{ document.getElementById(id).disabled=!allowPowerStage; document.getElementById(id).className=!allowPowerStage?"disabled":""; });
 }
 
-// --- Rallye wechseln ---
+// Rallye wechseln
 rallyeSelect.addEventListener("change", function(){ aktuelleRallyeIndex=parseInt(this.value); resetFields(); tippsHolen(); });
 
 resetFields();
 tippsHolen();
-
 </script>
 </body>
 </html>
