@@ -138,10 +138,18 @@ const fahrer = ["Armstron","Bertelli","Evans","Fourmaux","Katsuta","Lappi","McEr
 
 // ===================== RALLYES =====================
 const rallyes = [
+{name:"bitte Rallye auswählen",
+rallyeStart: Date.UTC(2026,1,22,15,5,0),
+powerstageStart: Date.UTC(2026,1,22,15,5,0),
+endplatz: [],
+powerstage: [],
+ausfall: "",
+bgImage: "images/montecarlo.jpg"
+},
 {
 name:"Monte Carlo",
-rallyeStart: Date.UTC(2026,0,22,15,5,0),
-powerstageStart: Date.UTC(2026,0,25,12,15,0),
+rallyeStart: Date.UTC(2026,1,22,15,5,0),
+powerstageStart: Date.UTC(2026,1,25,12,15,0),
 endplatz: ["Solberg","Evans","Ogier","Fourmaux","Neuville"],
 powerstage: ["Evans","Solberg","Ogier"],
 ausfall: "McErlean",
@@ -455,6 +463,7 @@ details.className = "punkte-breakdown";
 
 let html = "";
 rallyes.forEach((rallye,j)=>{
+if (rallye.name === "bitte Rallye auswählen") return;
 const breakdown = rallyeMap[name][j];
 let sum=0;
 if(breakdown){
