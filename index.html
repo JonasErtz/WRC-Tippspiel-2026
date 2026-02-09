@@ -63,13 +63,11 @@ const db = firebase.database();
 // --- Fahrer ---
 const fahrer = ["Ogier","Evans","Neuville","Katsuta","Fourmaux","Pajari","Solberg","Munster","McErlean","Paddon","Armstrong","Sordo","Lappi","Sesks","Bertelli"];
 
-// --- Rallyes 2026 mit UTC Zeiten ---
+// --- Rallyes 2026 (Beispiel, echte Ergebnisse nachtragen) ---
 const rallyes = [
 { name:"Monte Carlo", rallyeStart:Date.UTC(2026,0,22,10,0,0), powerstageStart:Date.UTC(2026,0,25,15,0,0), endplatz:["Ogier","Evans","Neuville","Katsuta","Fourmaux"], powerstage:["Ogier","Evans","Neuville"], ausfall:"Solberg" },
-{ name:"Schweden", rallyeStart:Date.UTC(2026,1,12,10,0,0), powerstageStart:Date.UTC(2026,1,15,15,0,0), endplatz:["Rovanperä","Evans","Ogier","Neuville","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Suninen" },
-{ name:"Kenia", rallyeStart:Date.UTC(2026,2,5,10,0,0), powerstageStart:Date.UTC(2026,2,8,15,0,0), endplatz:["Ogier","Evans","Neuville","Rovanperä","Lappi"], powerstage:["Evans","Ogier","Neuville"], ausfall:"Suninen" },
-{ name:"Kroatien", rallyeStart:Date.UTC(2026,3,2,10,0,0), powerstageStart:Date.UTC(2026,3,5,15,0,0), endplatz:["Rovanperä","Ogier","Neuville","Evans","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Tänak" }
-// ... weitere Rallyes hier ergänzen ...
+{ name:"Schweden", rallyeStart:Date.UTC(2026,1,12,10,0,0), powerstageStart:Date.UTC(2026,1,15,15,0,0), endplatz:["Rovanperä","Evans","Ogier","Neuville","Lappi"], powerstage:["Ogier","Evans","Rovanperä"], ausfall:"Suninen" }
+// ...weitere Rallyes hier ergänzen...
 ];
 
 // --- Dropdowns ---
@@ -161,36 +159,45 @@ details.textContent=text; li.appendChild(details); liste.appendChild(li);
 });
 }
 
-// --- Saison-Rangliste mit aktuelle Rallye farbig ---
+// --- Saison-Rangliste ---
 function anzeigenSaison(){
-const saisonListe = document.getElementById("saisonRangliste"); saisonListe.innerHTML="";
-const punkteMap={}; const rallyeMap={};
+const saisonListe = document.getElementById("saisonRangliste");
+saisonListe.innerHTML="";
 const aktuelleRallyeIndex = parseInt(document.getElementById("rallyeSelect").value);
 
-rallyes.forEach((r,i)=>{
-db.ref('tipps/'+i).once('value', snap=>{
+const punkteMap={};
+const rallyeMap={};
+
+// Daten aus allen Rallyes sammeln
+const promises = rallyes.map((r,i)=>{
+return db.ref('tipps/'+i).once('value').then(snap=>{
 const rDaten = snap.val()||{};
 Object.entries(rDaten).forEach(([name,val])=>{
 punkteMap[name]=(punkteMap[name]||0)+val.punkte;
 if(!rallyeMap[name]) rallyeMap[name]=[];
 rallyeMap[name][i]=val.breakdown;
 });
+});
+});
 
-saisonListe.innerHTML="";
+// Erst nachdem alle Rallyes geladen sind
+Promise.all(promises).then(()=>{
 Object.entries(punkteMap).sort((a,b)=>b[1]-a[1]).forEach(([name,total])=>{
-const li = document.createElement("li"); li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
+const li = document.createElement("li");
+li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
 const details = document.createElement("div"); details.className="punkte-breakdown";
 let html = "";
 
 rallyes.forEach((rallye,j)=>{
-const breakdown = rallyeMap[name][j]; let sum=0;
+const breakdown = rallyeMap[name][j];
+let sum=0;
 if(breakdown){ breakdown.platz.forEach(p=>sum+=p.punkte); breakdown.powerstage.forEach(p=>sum+=p.punkte); sum+=breakdown.ausfall?.punkte||0; }
 
 // Farbe nur für aktuelle Rallye
 let color = "black";
-if(j === aktuelleRallyeIndex){
-if(sum >= 7) color = "green";
-else if(sum>0) color = "orange";
+if(j===aktuelleRallyeIndex){
+if(sum>=7) color="green";
+else if(sum>0) color="orange";
 }
 
 html += `<div>${rallye.name}: <span style="color:${color}">${sum} Punkte</span></div>`;
@@ -199,7 +206,6 @@ html += `<div>${rallye.name}: <span style="color:${color}">${sum} Punkte</span><
 details.innerHTML = html;
 li.appendChild(details);
 saisonListe.appendChild(li);
-});
 });
 });
 }
