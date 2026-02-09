@@ -235,13 +235,6 @@ breakdown.platz.forEach(p=>sum+=p.punkte);
 breakdown.powerstage.forEach(p=>sum+=p.punkte);
 sum += breakdown.ausfall?.punkte || 0;
 }
-// Farbe nach Punktzahl
-let color = "red";
-if(sum>=7) color="green";
-else if(sum>0) color="orange";
-
-html += `${rallye.name}: <span style="color:${color}">${sum} Punkte</span>\n`;
-});
 
 details.textContent = html;
 li.appendChild(details);
