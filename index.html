@@ -45,19 +45,19 @@ ul { text-align: left; }
 <h2>🏆 Saison-Rangliste</h2>
 <ul id="saisonRangliste"></ul>
 
-<!-- Firebase SDK -->
+<!-- Firebase SDK (Compat-Version) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
-// --- Firebase Config hier einfügen ---
+// --- Firebase Config (eingefügt) ---
 const firebaseConfig = {
-  apiKey: "AIzaSyBx6XHMMhlWpJgyeK7veKQ8i-fNVu4ohYU",
-  authDomain: "wrc-tippspiel-2026.firebaseapp.com",
-  projectId: "wrc-tippspiel-2026",
-  storageBucket: "wrc-tippspiel-2026.firebasestorage.app",
-  messagingSenderId: "342694581633",
-  appId: "1:342694581633:web:133043efea71be6ddf8480"
+apiKey: "AIzaSyBx6XHMMhlWpJgyeK7veKQ8i-fNVu4ohYU",
+authDomain: "wrc-tippspiel-2026.firebaseapp.com",
+projectId: "wrc-tippspiel-2026",
+storageBucket: "wrc-tippspiel-2026.firebasestorage.app",
+messagingSenderId: "342694581633",
+appId: "1:342694581633:web:133043efea71be6ddf8480"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
