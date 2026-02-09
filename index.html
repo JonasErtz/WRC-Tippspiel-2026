@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>WRC Saison Tippspiel (Firebase)</title>
+<title>WRC Tippspiel</title>
 <style>
 body { font-family: Arial; max-width: 700px; margin: auto; text-align: center; }
 input, select, button { margin: 5px; padding: 8px; width: 95%; }
@@ -14,12 +14,10 @@ ul { text-align: left; }
 </head>
 <body>
 
-<h1>🏁 WRC Saison-Tippspiel</h1>
+<h1>🏁 WRC Saison Tippspiel</h1>
 <p>Wähle eine Rallye, trage deinen Namen ein und tippe!</p>
 
-<select id="rallyeSelect"></select>
-<br><br>
-
+<select id="rallyeSelect"></select><br><br>
 <input id="name" placeholder="Dein Name">
 
 <h3>Endplatzierungen (Plätze 1–5)</h3>
@@ -53,7 +51,7 @@ ul { text-align: left; }
 const firebaseConfig = {
 apiKey: "AIzaSyBx6XHMMhlWpJgyeK7veKQ8i-fNVu4ohYU",
 authDomain: "wrc-tippspiel-2026.firebaseapp.com",
-databaseURL: "https://wrc-tippspiel-2026-default-rtdb.firebaseio.com/", // <--- ECHTE URL HIER
+databaseURL: "https://wrc-tippspiel-2026-default-rtdb.firebaseio.com/", // <- echte URL hier
 projectId: "wrc-tippspiel-2026",
 storageBucket: "wrc-tippspiel-2026.firebasestorage.app",
 messagingSenderId: "342694581633",
@@ -62,6 +60,7 @@ appId: "1:342694581633:web:133043efea71be6ddf8480"
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// --- Fahrer & Rallyes ---
 const fahrer = ["Ogier","Rovanperä","Neuville","Evans","Lappi","Suninen","Greensmith","Tänak"];
 const rallyes = [
 { name: "Monte Carlo", endplatz: ["Ogier","Rovanperä","Neuville","Evans","Lappi"], powerstage: ["Evans","Ogier","Rovanperä"], ausfall: "Greensmith", rallyeStart: new Date("2026-03-01T10:00:00"), powerstageStart: new Date("2026-03-01T15:00:00") },
@@ -73,10 +72,9 @@ let aktuelleRallyeIndex = 0;
 document.addEventListener("DOMContentLoaded", function() {
 
 // Dropdowns füllen
-["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id => {
+["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id=>{
 const select = document.getElementById(id);
-select.innerHTML = `<option value="">${select.options[0]?.text || "Wählen"}</option>`;
-fahrer.forEach(f => {
+fahrer.forEach(f=>{
 const option = document.createElement("option");
 option.value = f;
 option.text = f;
@@ -104,69 +102,76 @@ tippsHolen();
 });
 
 document.getElementById("tipButton").addEventListener("click", function(){
-const now = new Date();
-const rallye = rallyes[aktuelleRallyeIndex];
-
 const name = document.getElementById("name").value.trim();
 if(!name){ alert("Bitte Name eingeben!"); return; }
 
-const tipps = [ document.getElementById("platz1").value, document.getElementById("platz2").value, document.getElementById("platz3").value, document.getElementById("platz4").value, document.getElementById("platz5").value ];
-const psTipps = [ document.getElementById("ps1").value, document.getElementById("ps2").value, document.getElementById("ps3").value ];
+const tipps = ["platz1","platz2","platz3","platz4","platz5"].map(id=>document.getElementById(id).value);
+const psTipps = ["ps1","ps2","ps3"].map(id=>document.getElementById(id).value);
 const ausfallTipp = document.getElementById("ausfall").value;
 
 if(tipps.includes("") || psTipps.includes("") || !ausfallTipp){ alert("Bitte alle Felder ausfüllen!"); return; }
 
-let breakdown = { platz: [], powerstage: [], ausfall: 0 };
+const rallye = rallyes[aktuelleRallyeIndex];
 let punkte = 0;
-tipps.forEach((fahrerName,index)=>{
-let punkt=0;
-if(fahrerName===rallye.endplatz[index]) punkt=(index===0)?7:5;
-else if(rallye.endplatz.includes(fahrerName)) punkt=2;
-breakdown.platz.push({fahrer:fahrerName,punkte:punkt});
-punkte+=punkt;
-});
-psTipps.forEach((fahrerName,index)=>{
-let punkt=0;
-if(fahrerName===rallye.powerstage[index]) punkt=3;
-else if(rallye.powerstage.includes(fahrerName)) punkt=2;
-breakdown.powerstage.push({fahrer:fahrerName,punkte:punkt});
-punkte+=punkt;
-});
-let ausfallPunkte=0;
-if(ausfallTipp===rallye.ausfall){ ausfallPunkte=3; punkte+=3; }
-breakdown.ausfall={fahrer:ausfallTipp,punkte:ausfallPunkte};
+let breakdown = { platz: [], powerstage: [], ausfall: 0 };
 
-db.ref('tipps/'+aktuelleRallyeIndex+'/'+name).set({ punkte, breakdown });
+// Endplatzierung
+tipps.forEach((f,i)=>{
+let p=0;
+if(f===rallye.endplatz[i]) p=(i===0)?7:5;
+else if(rallye.endplatz.includes(f)) p=2;
+breakdown.platz.push({fahrer:f,punkte:p});
+punkte+=p;
+});
+
+// Power Stage
+psTipps.forEach((f,i)=>{
+let p=0;
+if(f===rallye.powerstage[i]) p=3;
+else if(rallye.powerstage.includes(f)) p=2;
+breakdown.powerstage.push({fahrer:f,punkte:p});
+punkte+=p;
+});
+
+// Erster Ausfall
+let ausfallP=0;
+if(ausfallTipp===rallye.ausfall){ ausfallP=3; punkte+=3; }
+breakdown.ausfall={fahrer:ausfallTipp,punkte:ausfallP};
+
+db.ref('tipps/'+aktuelleRallyeIndex+'/'+name).set({punkte,breakdown});
 });
 });
 
 // --- Ranglisten ---
 function tippsHolen(){
-const rallyeIndex = aktuelleRallyeIndex;
-const ref = db.ref('tipps/'+rallyeIndex);
+const ref = db.ref('tipps/'+aktuelleRallyeIndex);
 ref.on('value', snapshot=>{
-const daten = snapshot.val() || {};
+const daten = snapshot.val()||{};
 anzeigen(daten);
 anzeigenSaison();
 });
 }
 
 function anzeigen(daten){
-const liste=document.getElementById("rangliste");
+const liste = document.getElementById("rangliste");
 liste.innerHTML="";
-const ownName = document.getElementById("name").value.trim();
 const now = new Date();
 const rallye = rallyes[aktuelleRallyeIndex];
+const ownName = document.getElementById("name").value.trim();
 
 Object.entries(daten).forEach(([name,val])=>{
-if(now > rallye.rallyeStart || name === ownName){
-const li=document.createElement("li");
+if(now>rallye.rallyeStart || name===ownName){
+const li = document.createElement("li");
 li.textContent=`${name} – ${val.punkte} Punkte`;
-const details=document.createElement("div"); details.className="punkte-breakdown";
-let platzText="Plätze:\n"; val.breakdown.platz.forEach((p,i)=>{ platzText+=` ${i+1}. ${p.fahrer} → ${p.punkte} Punkte\n`; });
-let psText="Power Stage:\n"; val.breakdown.powerstage.forEach((p,i)=>{ psText+=` ${i+1}. ${p.fahrer} → ${p.punkte} Punkte\n`; });
-let ausfallText=`Erster Ausfall:\n ${val.breakdown.ausfall.fahrer} → ${val.breakdown.ausfall.punkte} Punkte`;
-details.textContent=platzText+psText+ausfallText;
+const details = document.createElement("div");
+details.className="punkte-breakdown";
+let text = "Plätze:\n";
+val.breakdown.platz.forEach((p,i)=>{ text+=` ${i+1}. ${p.fahrer} → ${p.punkte} Punkte\n`; });
+text+="Power Stage:\n";
+val.breakdown.powerstage.forEach((p,i)=>{ text+=` ${i+1}. ${p.fahrer} → ${p.punkte} Punkte\n`; });
+text+="Erster Ausfall:\n";
+text+=` ${val.breakdown.ausfall.fahrer} → ${val.breakdown.ausfall.punkte} Punkte`;
+details.textContent=text;
 li.appendChild(details);
 liste.appendChild(li);
 }
@@ -174,7 +179,7 @@ liste.appendChild(li);
 }
 
 function anzeigenSaison(){
-const saisonListe=document.getElementById("saisonRangliste");
+const saisonListe = document.getElementById("saisonRangliste");
 saisonListe.innerHTML="";
 const punkteMap={};
 rallyes.forEach((r,i)=>{
@@ -194,14 +199,12 @@ saisonListe.appendChild(li);
 }
 
 function resetFields(){
-const now = new Date();
-const rallye = rallyes[aktuelleRallyeIndex];
-
+["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id=>{
+document.getElementById(id).value="";
+document.getElementById(id).disabled=false;
+document.getElementById(id).className="";
+});
 document.getElementById("name").value="";
-["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id=>document.getElementById(id).value="");
-
-["platz1","platz2","platz3","platz4","platz5","ausfall"].forEach(id=>{ document.getElementById(id).disabled=false; document.getElementById(id).className=""; });
-["ps1","ps2","ps3"].forEach(id=>{ document.getElementById(id).disabled=false; document.getElementById(id).className=""; });
 }
 </script>
 </body>
