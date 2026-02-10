@@ -388,7 +388,8 @@ function tippsHolen() {
         anzeigen(daten); // aktuelle Rallye anzeigen
     });
 
-    // Saison-Rangliste separat laden, nur einmal
+    // Saison-Rangliste nur **einmalig**, nicht mehrfach
+    // AnzeigenSaison jetzt nur hier aufrufen
     anzeigenSaison();
 }
 
@@ -482,7 +483,6 @@ function anzeigen(daten){
     });
 }
 
-
 function anzeigenSaison() {
     const saisonListe = document.getElementById("saisonRangliste");
     saisonListe.innerHTML = ""; // Immer zuerst leeren
@@ -490,63 +490,45 @@ function anzeigenSaison() {
     const punkteMap = {};   // Gesamtpunkte pro Fahrer
     const rallyeMap = {};   // Punkte pro Rallye pro Fahrer
 
-    // Array aller Firebase-Abfragen
     const promises = rallyes.map((r, i) => {
         return db.ref('tipps/' + i).once('value').then(snap => {
             const daten = snap.val() || {};
             Object.entries(daten).forEach(([name, val]) => {
-                // Gesamtpunkte pro Rallye berechnen
                 let rallyePunkte = 0;
 
-                // Endplatzierungen
-                if (val.breakdown?.platz) {
-                    val.breakdown.platz.forEach((p, j) => {
-                        if (p.fahrer === r.endplatz[j]) rallyePunkte += (j === 0 ? 7 : 5);
-                        else if (r.endplatz.includes(p.fahrer)) rallyePunkte += 2;
-                    });
-                }
+                val.breakdown?.platz?.forEach((p, j) => {
+                    if (p.fahrer === r.endplatz[j]) rallyePunkte += (j === 0 ? 7 : 5);
+                    else if (r.endplatz.includes(p.fahrer)) rallyePunkte += 2;
+                });
 
-                // Power Stage
-                if (val.breakdown?.powerstage) {
-                    val.breakdown.powerstage.forEach((p, j) => {
-                        if (p.fahrer === r.powerstage[j]) rallyePunkte += (j === 0 ? 4 : 3);
-                        else if (r.powerstage.includes(p.fahrer)) rallyePunkte += 2;
-                    });
-                }
+                val.breakdown?.powerstage?.forEach((p, j) => {
+                    if (p.fahrer === r.powerstage[j]) rallyePunkte += (j === 0 ? 4 : 3);
+                    else if (r.powerstage.includes(p.fahrer)) rallyePunkte += 2;
+                });
 
-                // Erster Ausfall
                 if (val.breakdown?.ausfall?.fahrer === r.ausfall) rallyePunkte += 3;
 
-                // Gesamtpunkte speichern
-                if (!punkteMap[name]) punkteMap[name] = 0;
-                punkteMap[name] += rallyePunkte;
-
-                // Punkte pro Rallye speichern
-                if (!rallyeMap[name]) rallyeMap[name] = [];
+                punkteMap[name] = (punkteMap[name] || 0) + rallyePunkte;
+                rallyeMap[name] = rallyeMap[name] || [];
                 rallyeMap[name][i] = rallyePunkte;
             });
         });
     });
 
-    // Sobald alle Rallyes geladen sind
     Promise.all(promises).then(() => {
-        // Fahrer nach Gesamtpunkten sortieren
         Object.entries(punkteMap)
             .sort((a, b) => b[1] - a[1])
             .forEach(([name, total]) => {
-                // <li> nur einmal pro Fahrer erstellen
                 const li = document.createElement("li");
                 li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
 
-                // Breakdown pro Rallye
                 const details = document.createElement("div");
                 details.className = "punkte-breakdown";
 
                 let html = "";
                 rallyes.forEach((r, j) => {
                     if (r.name === "bitte Rallye auswählen") return;
-                    const sum = rallyeMap[name][j] || 0;
-                    html += `${r.name}: ${sum} Punkte<br>`;
+                    html += `${r.name}: ${rallyeMap[name][j] || 0} Punkte<br>`;
                 });
 
                 details.innerHTML = html;
@@ -555,6 +537,12 @@ function anzeigenSaison() {
             });
     });
 }
+
+
+
+
+
+
 
 
 
