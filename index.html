@@ -378,14 +378,20 @@ document.getElementById("ausfall").value=t.breakdown.ausfall?.fahrer||"";
 }
 
 // ===================== RANGLISTE =====================
-function tippsHolen(){
-const idx=parseInt(document.getElementById("rallyeSelect").value);
-db.ref('tipps/'+idx).once('value',snap=>{
-const daten=snap.val()||{};
-anzeigen(daten);
-anzeigenSaison();
-});
+
+function tippsHolen() {
+    const idx = parseInt(document.getElementById("rallyeSelect").value);
+
+    // Nur die Tipps für die aktuelle Rallye laden
+    db.ref('tipps/' + idx).once('value').then(snap => {
+        const daten = snap.val() || {};
+        anzeigen(daten); // aktuelle Rallye anzeigen
+    });
+
+    // Saison-Rangliste separat laden, nur einmal
+    anzeigenSaison();
 }
+
 
 function anzeigen(daten){
     const liste = document.getElementById("rangliste");
