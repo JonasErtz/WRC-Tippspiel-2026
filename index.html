@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -170,13 +169,13 @@ name:"Kenia",
 rallyeStart: Date.UTC(2026,0,5,10,0,0),
 powerstageStart: Date.UTC(2026,2,8,15,0,0),
 endplatz: [],
-powerstage: [],
-ausfall: "Armstrong",
+powerstage: [Armstrong],
+ausfall: "",
 bgImage: "images/kenia.jpg"
 },
 {
 name:"Kroatien",
-rallyeStart: Date.UTC(2026,0,2,10,0,0),
+rallyeStart: Date.UTC(2026,3,2,10,0,0),
 powerstageStart: Date.UTC(2026,3,5,15,0,0),
 endplatz: [],
 powerstage: [],
@@ -407,6 +406,7 @@ if(showPlatz){
 
 const punkteNeu = berechnePunkte(val.breakdown, rallye);
 
+const li = document.createElement("li");
 li.innerHTML = `<strong>${name} – ${punkteNeu} Punkte</strong>`;
 
 const details = document.createElement("div");
