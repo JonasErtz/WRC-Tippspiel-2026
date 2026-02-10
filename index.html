@@ -404,7 +404,12 @@ const showPS = now >= rallye.powerstageStart || name === ownName;
 
 if(showPlatz){
 const li = document.createElement("li");
-li.innerHTML = `<strong>${name} – ${val.punkte} Punkte</strong>`;
+
+const punkteNeu = berechnePunkte(val.breakdown, rallye);
+
+const li = document.createElement("li");
+li.innerHTML = `<strong>${name} – ${punkteNeu} Punkte</strong>`;
+
 
 const details = document.createElement("div");
 details.className = "punkte-breakdown";
