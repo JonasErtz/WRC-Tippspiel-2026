@@ -167,9 +167,9 @@ bgImage: "images/schweden.jpg"
 {
 name:"Kenia",
 rallyeStart: Date.UTC(2026,0,5,10,0,0),
-powerstageStart: Date.UTC(2026,2,8,15,0,0),
+powerstageStart: Date.UTC(2026,0,8,15,0,0),
 endplatz: ["Neuville","Evans","Ogier","Lappi","Sordo"],
-powerstage: [],
+powerstage: ["McErlean","Armstrong","Munster"],
 ausfall: "Armstrong",
 bgImage: "images/kenia.jpg"
 },
@@ -380,7 +380,7 @@ document.getElementById("ausfall").value=t.breakdown.ausfall?.fahrer||"";
 // ===================== RANGLISTE =====================
 function tippsHolen(){
 const idx=parseInt(document.getElementById("rallyeSelect").value);
-db.ref('tipps/'+idx).on('value',snap=>{
+db.ref('tipps/'+idx).once('value',snap=>{
 const daten=snap.val()||{};
 anzeigen(daten);
 anzeigenSaison();
