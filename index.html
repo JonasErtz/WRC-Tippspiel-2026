@@ -166,7 +166,7 @@ bgImage: "images/schweden.jpg"
 },
 {
 name:"Kenia",
-rallyeStart: Date.UTC(2026,2,5,10,0,0),
+rallyeStart: Date.UTC(2026,0,5,10,0,0),
 powerstageStart: Date.UTC(2026,2,8,15,0,0),
 endplatz: ["Neuville","Evans","Ogier","Lappi","Sordo"],
 powerstage: [],
@@ -478,7 +478,7 @@ function anzeigen(daten){
 
 function anzeigenSaison() {
     const saisonListe = document.getElementById("saisonRangliste");
-    saisonListe.innerHTML = "";
+    saisonListe.innerHTML = ""; // Liste leeren
 
     const punkteMap = {};   // Gesamtpunkte pro Fahrer
     const rallyeMap = {};   // Punkte pro Rallye pro Fahrer
@@ -487,8 +487,8 @@ function anzeigenSaison() {
         return db.ref('tipps/' + i).once('value').then(snap => {
             const rDaten = snap.val() || {};
             Object.entries(rDaten).forEach(([name, val]) => {
-                
-                // --- Live Punkte für diese Rallye berechnen ---
+
+                // Punkte für diese Rallye berechnen
                 let rallyePunkte = 0;
 
                 // Endplatzierungen
@@ -507,8 +507,7 @@ function anzeigenSaison() {
                 if (val.breakdown.ausfall?.fahrer === r.ausfall) rallyePunkte += 3;
 
                 // Gesamtpunkte pro Fahrer
-                if (!punkteMap[name]) punkteMap[name] = 0;
-                punkteMap[name] += rallyePunkte;
+                punkteMap[name] = (punkteMap[name] || 0) + rallyePunkte;
 
                 if (!rallyeMap[name]) rallyeMap[name] = [];
                 rallyeMap[name][i] = val.breakdown;
@@ -516,7 +515,7 @@ function anzeigenSaison() {
         });
     });
 
-    // --- Erst nachdem alle Rallye-Abfragen abgeschlossen sind ---
+    // --- NUR EINMAL rendern, wenn alle Rallye-Abfragen abgeschlossen ---
     Promise.all(promises).then(() => {
         Object.entries(punkteMap)
             .sort((a, b) => b[1] - a[1])
@@ -533,6 +532,7 @@ function anzeigenSaison() {
                     let sum = 0;
                     const breakdown = rallyeMap[name][j];
                     if (breakdown) {
+                        // Punkte für diese Rallye live berechnen
                         breakdown.platz.forEach((p, k) => {
                             if (p.fahrer === rallye.endplatz[k]) sum += (k === 0) ? 7 : 5;
                             else if (rallye.endplatz.includes(p.fahrer)) sum += 2;
@@ -543,12 +543,13 @@ function anzeigenSaison() {
                         });
                         if (breakdown.ausfall?.fahrer === rallye.ausfall) sum += 3;
                     }
+
                     html += `${rallye.name}: ${sum} Punkte<br>`;
                 });
 
                 details.innerHTML = html;
                 li.appendChild(details);
-                saisonListe.appendChild(li);
+                saisonListe.appendChild(li); // NUR HIER anfügen
             });
     });
 }
