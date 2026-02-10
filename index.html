@@ -477,7 +477,66 @@ function anzeigen(daten){
 }
 
 
+function anzeigenSaison() {
+    const saisonListe = document.getElementById("saisonRangliste");
+    saisonListe.innerHTML = "";
 
+    const punkteMap = {};   // Gesamtpunkte pro Spieler
+    const rallyeMap = {};    // Punkte pro Rallye pro Spieler
+
+    const rallyePromises = rallyes
+        .filter(r => r.name !== "bitte Rallye auswählen") // die Dummy-Rallye überspringen
+        .map((r, i) => {
+            return db.ref('tipps/' + i).once('value').then(snap => {
+                const daten = snap.val() || {};
+                Object.entries(daten).forEach(([name, val]) => {
+                    // Punkte pro Rallye
+                    let rallyePunkte = 0;
+
+                    val.breakdown.platz.forEach((p, j) => {
+                        if (p.fahrer === r.endplatz[j]) rallyePunkte += (j === 0 ? 7 : 5);
+                        else if (r.endplatz.includes(p.fahrer)) rallyePunkte += 2;
+                    });
+
+                    val.breakdown.powerstage.forEach((p, j) => {
+                        if (p.fahrer === r.powerstage[j]) rallyePunkte += (j === 0 ? 4 : 3);
+                        else if (r.powerstage.includes(p.fahrer)) rallyePunkte += 2;
+                    });
+
+                    if (val.breakdown.ausfall?.fahrer === r.ausfall) rallyePunkte += 3;
+
+                    // Punkte speichern
+                    punkteMap[name] = (punkteMap[name] || 0) + rallyePunkte;
+                    if (!rallyeMap[name]) rallyeMap[name] = [];
+                    rallyeMap[name][i] = rallyePunkte;
+                });
+            });
+        });
+
+    Promise.all(rallyePromises).then(() => {
+        // Sortieren und ein <li> pro Spieler erstellen
+        Object.entries(punkteMap)
+            .sort((a, b) => b[1] - a[1])
+            .forEach(([name, total]) => {
+                const li = document.createElement("li");
+                li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
+
+                const details = document.createElement("div");
+                details.className = "punkte-breakdown";
+
+                let html = "";
+                rallyes.forEach((r, j) => {
+                    if (r.name === "bitte Rallye auswählen") return;
+                    const sum = rallyeMap[name][j] || 0;
+                    html += `${r.name}: ${sum} Punkte<br>`;
+                });
+
+                details.innerHTML = html;
+                li.appendChild(details);
+                saisonListe.appendChild(li);
+            });
+    });
+}
 
 
 
