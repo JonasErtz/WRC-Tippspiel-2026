@@ -388,71 +388,92 @@ anzeigenSaison();
 }
 
 function anzeigen(daten){
-const liste = document.getElementById("rangliste");
-liste.innerHTML = "";
-const now = Date.now();
-const rallyeIndex = parseInt(document.getElementById("rallyeSelect").value);
-const rallye = rallyes[rallyeIndex];
-const ownName = document.getElementById("name").value.trim();
+    const liste = document.getElementById("rangliste");
+    liste.innerHTML = "";
+    const now = Date.now();
+    const rallyeIndex = parseInt(document.getElementById("rallyeSelect").value);
+    const rallye = rallyes[rallyeIndex];
+    const ownName = document.getElementById("name").value.trim();
 
-Object.entries(daten)
-.sort((a,b) => b[1].punkte - a[1].punkte)
-.forEach(([name,val])=>{
-// Sichtbarkeit prüfen: Plätze ab Rallyestart, Power Stage ab Power Stage Start, eigene Tipps immer sichtbar
-const showPlatz = now >= rallye.rallyeStart || name === ownName;
-const showPS = now >= rallye.powerstageStart || name === ownName;
+    Object.entries(daten)
+    .sort((a,b) => b[1].punkte - a[1].punkte)
+    .forEach(([name,val])=>{
+        // Sichtbarkeit prüfen: Plätze ab Rallyestart, Power Stage ab Power Stage Start, eigene Tipps immer sichtbar
+        const showPlatz = now >= rallye.rallyeStart || name === ownName;
+        const showPS = now >= rallye.powerstageStart || name === ownName;
 
-if(showPlatz){
-const li = document.createElement("li");
-li.innerHTML = `<strong>${name} – ${val.punkte} Punkte</strong>`;
+        if(showPlatz){
+            const li = document.createElement("li");
 
-const details = document.createElement("div");
-details.className = "punkte-breakdown";
+            // --- Punkte live berechnen ---
+            let punkte = 0;
 
-let text = "Plätze:\n";
-val.breakdown.platz.forEach((p,i)=>{
-let color = "red";
-if(p.punkte >= 5) color = "green";
-else if(p.punkte > 0) color = "orange";
+            // Endplatzierungen
+            val.breakdown.platz.forEach((p,i)=>{
+                if(p.fahrer === rallye.endplatz[i]) punkte += (i===0)?7:5;
+                else if(rallye.endplatz.includes(p.fahrer)) punkte += 2;
+            });
 
-// Aktueller Rallyestand
-let punktePlatz = 0;
-if (p.fahrer === rallye.endplatz[i]) {
-    punktePlatz = (i === 0) ? 7 : 5;
-} else if (rallye.endplatz.includes(p.fahrer)) {
-    punktePlatz = 2;
-}
+            // Power Stage
+            val.breakdown.powerstage.forEach((p,i)=>{
+                if(p.fahrer === rallye.powerstage[i]) punkte += (i===0)?4:3;
+                else if(rallye.powerstage.includes(p.fahrer)) punkte += 2;
+            });
 
-let actual = rallye.endplatz[i] ? ` (tatsächlich: ${rallye.endplatz[i]})` : "";
-text += ` ${i+1}. ${p.fahrer} → <span style="color:${color}">${punktePlatz} Punkte</span>${actual}\n`;
+            // Erster Ausfall
+            if(val.breakdown.ausfall?.fahrer === rallye.ausfall) punkte += 3;
 
-// Erster Ausfall
-let ausfallP = (val.breakdown.ausfall?.fahrer === rallye.ausfall) ? 3 : 0;
+            li.innerHTML = `<strong>${name} – ${punkte} Punkte</strong>`;
 
-let colorAusfall = ausfallP > 0 ? "green" : "red";
-let actualAusfall = rallye.ausfall ? ` (tatsächlich: ${rallye.ausfall})` : "";
-text += `Erster Ausfall: ${val.breakdown.ausfall.fahrer} → <span style="color:${colorAusfall}">${ausfallP} Punkte</span>${actualAusfall}\n`;
+            // --- Details mit Live-Punkten ---
+            const details = document.createElement("div");
+            details.className = "punkte-breakdown";
 
-// Power Stage
-if(showPS){
-text += "Power Stage:\n";
-val.breakdown.powerstage.forEach((p,i)=>{
-let color = "red";
-if(p.punkte >= 3) color = "green";
-else if(p.punkte > 0) color = "orange";
+            let text = "Plätze:\n";
+            val.breakdown.platz.forEach((p,i)=>{
+                let color = "red";
+                let livePunkte = 0;
+                if(p.fahrer === rallye.endplatz[i]) livePunkte = (i===0)?7:5;
+                else if(rallye.endplatz.includes(p.fahrer)) livePunkte = 2;
 
-let actual = rallye.powerstage[i] ? ` (tatsächlich: ${rallye.powerstage[i]})` : "";
-text += ` ${i+1}. ${p.fahrer} → <span style="color:${color}">${p.punkte} Punkte</span>${actual}\n`;
-});
-} else {
-text += "Power Stage:\n ⏳ noch gesperrt\n";
-}
+                if(livePunkte >= 5) color = "green";
+                else if(livePunkte > 0) color = "orange";
 
-details.innerHTML = text;
-li.appendChild(details);
-liste.appendChild(li);
-}
-});
+                let actual = rallye.endplatz[i] ? ` (tatsächlich: ${rallye.endplatz[i]})` : "";
+                text += ` ${i+1}. ${p.fahrer} → <span style="color:${color}">${livePunkte} Punkte</span>${actual}\n`;
+            });
+
+            // Erster Ausfall
+            let ausfallP = 0;
+            if(val.breakdown.ausfall?.fahrer === rallye.ausfall) ausfallP = 3;
+            let colorAusfall = ausfallP > 0 ? "green" : "red";
+            let actualAusfall = rallye.ausfall ? ` (tatsächlich: ${rallye.ausfall})` : "";
+            text += `Erster Ausfall: ${val.breakdown.ausfall.fahrer} → <span style="color:${colorAusfall}">${ausfallP} Punkte</span>${actualAusfall}\n`;
+
+            // Power Stage
+            if(showPS){
+                text += "Power Stage:\n";
+                val.breakdown.powerstage.forEach((p,i)=>{
+                    let color = "red";
+                    let livePunkte = 0;
+                    if(p.fahrer === rallye.powerstage[i]) livePunkte = (i===0)?4:3;
+                    else if(rallye.powerstage.includes(p.fahrer)) livePunkte = 2;
+
+                    if(livePunkte >= 3) color = "green";
+                    else if(livePunkte > 0) color = "orange";
+
+                    let actual = rallye.powerstage[i] ? ` (tatsächlich: ${rallye.powerstage[i]})` : "";
+                    text += ` ${i+1}. ${p.fahrer} → <span style="color:${color}">${livePunkte} Punkte</span>${actual}\n`;
+                });
+            } else {
+                text += "Power Stage:\n ⏳ noch gesperrt\n";
+            }
+
+            details.innerHTML = text;
+            li.appendChild(details);
+            liste.appendChild(li);
+        }
+    });
 }
 
 function anzeigenSaison(){
