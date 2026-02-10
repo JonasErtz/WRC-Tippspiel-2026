@@ -170,7 +170,7 @@ rallyeStart: Date.UTC(2026,0,5,10,0,0),
 powerstageStart: Date.UTC(2026,2,8,15,0,0),
 endplatz: [],
 powerstage: [],
-ausfall: "Armstrong",
+ausfall: "",
 bgImage: "images/kenia.jpg"
 },
 {
@@ -403,13 +403,11 @@ const showPlatz = now >= rallye.rallyeStart || name === ownName;
 const showPS = now >= rallye.powerstageStart || name === ownName;
 
 if(showPlatz){
-const li = document.createElement("li");
 
 const punkteNeu = berechnePunkte(val.breakdown, rallye);
 
 const li = document.createElement("li");
 li.innerHTML = `<strong>${name} – ${punkteNeu} Punkte</strong>`;
-
 
 const details = document.createElement("div");
 details.className = "punkte-breakdown";
@@ -453,6 +451,35 @@ liste.appendChild(li);
 });
 }
 
+function berechnePunkte(breakdown, rallye) {
+  let punkte = 0;
+
+  // Endplatzierungen
+  breakdown.platz.forEach((p, i) => {
+    if (p.fahrer === rallye.endplatz[i]) {
+      punkte += (i === 0) ? 7 : 5;
+    } else if (rallye.endplatz.includes(p.fahrer)) {
+      punkte += 2;
+    }
+  });
+
+  // Power Stage
+  breakdown.powerstage.forEach((p, i) => {
+    if (p.fahrer === rallye.powerstage[i]) {
+      punkte += (i === 0) ? 4 : 3;
+    } else if (rallye.powerstage.includes(p.fahrer)) {
+      punkte += 2;
+    }
+  });
+
+  // Erster Ausfall
+  if (breakdown.ausfall?.fahrer === rallye.ausfall) {
+    punkte += 3;
+  }
+
+  return punkte;
+}
+
 function anzeigenSaison(){
 const saisonListe = document.getElementById("saisonRangliste");
 saisonListe.innerHTML="";
@@ -466,7 +493,10 @@ rallyes.forEach((r,i)=>{
 db.ref('tipps/'+i).once('value').then(snap=>{
 const rDaten = snap.val()||{};
 Object.entries(rDaten).forEach(([name,val])=>{
-punkteMap[name] = (punkteMap[name]||0) + val.punkte;
+
+const neu = berechnePunkte(val.breakdown, rallyes[i]);
+punkteMap[name] = (punkteMap[name] || 0) + neu;
+
 if(!rallyeMap[name]) rallyeMap[name] = [];
 rallyeMap[name][i] = val.breakdown;
 });
@@ -618,4 +648,3 @@ document.getElementById("deadlineAusfall").textContent =
 
 </script>
 </body>
-</html>
