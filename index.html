@@ -379,12 +379,32 @@ document.getElementById("ausfall").value=t.breakdown.ausfall?.fahrer||"";
 
 // ===================== RANGLISTE =====================
 function tippsHolen(){
-const idx=parseInt(document.getElementById("rallyeSelect").value);
-db.ref('tipps/'+idx).on('value',snap=>{
-const daten=snap.val()||{};
-anzeigen(daten);
-anzeigenSaison();
-});
+  const idx = parseInt(document.getElementById("rallyeSelect").value);
+  db.ref('tipps/'+idx).once('value').then(snap=>{
+    const daten = snap.val() || {};
+    const rallye = rallyes[idx];
+    const updates = {};
+
+    // Punkte für jeden Tipp neu berechnen
+    Object.entries(daten).forEach(([name,val])=>{
+      const neuePunkte = berechnePunkte(val.breakdown, rallye);
+      if(val.punkte !== neuePunkte){
+        val.punkte = neuePunkte;
+        updates[name] = val;
+      }
+    });
+
+    // Firebase aktualisieren, falls Punkte sich geändert haben
+    if(Object.keys(updates).length > 0){
+      db.ref('tipps/'+idx).update(updates).then(()=>{
+        anzeigen(daten);
+        anzeigenSaison();
+      });
+    } else {
+      anzeigen(daten);
+      anzeigenSaison();
+    }
+  });
 }
 
 function anzeigen(daten){
