@@ -170,7 +170,7 @@ rallyeStart: Date.UTC(2026,0,5,10,0,0),
 powerstageStart: Date.UTC(2026,2,8,15,0,0),
 endplatz: [],
 powerstage: [],
-ausfall: "",
+ausfall: "Armstrong",
 bgImage: "images/kenia.jpg"
 },
 {
@@ -424,7 +424,7 @@ text += ` ${i+1}. ${p.fahrer} → <span style="color:${color}">${p.punkte} Punkt
 });
 
 // Erster Ausfall
-let ausfallP = val.breakdown.ausfall.punkte;
+let ausfallP = (val.breakdown.ausfall?.fahrer === rallye.ausfall) ? 3 : 0;
 let colorAusfall = ausfallP > 0 ? "green" : "red";
 let actualAusfall = rallye.ausfall ? ` (tatsächlich: ${rallye.ausfall})` : "";
 text += `Erster Ausfall: ${val.breakdown.ausfall.fahrer} → <span style="color:${colorAusfall}">${ausfallP} Punkte</span>${actualAusfall}\n`;
