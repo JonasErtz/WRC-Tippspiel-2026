@@ -168,7 +168,7 @@ bgImage: "images/schweden.jpg"
 name:"Kenia",
 rallyeStart: Date.UTC(2026,0,5,10,0,0),
 powerstageStart: Date.UTC(2026,2,8,15,0,0),
-endplatz: ["Evans","Neuville","Ogier","Lappi","Sordo"],
+endplatz: [],
 powerstage: [],
 ausfall: "Armstrong",
 bgImage: "images/kenia.jpg"
@@ -379,32 +379,12 @@ document.getElementById("ausfall").value=t.breakdown.ausfall?.fahrer||"";
 
 // ===================== RANGLISTE =====================
 function tippsHolen(){
-  const idx = parseInt(document.getElementById("rallyeSelect").value);
-  db.ref('tipps/'+idx).once('value').then(snap=>{
-    const daten = snap.val() || {};
-    const rallye = rallyes[idx];
-    const updates = {};
-
-    // Punkte für jeden Tipp neu berechnen
-    Object.entries(daten).forEach(([name,val])=>{
-      const neuePunkte = berechnePunkte(val.breakdown, rallye);
-      if(val.punkte !== neuePunkte){
-        val.punkte = neuePunkte;
-        updates[name] = val;
-      }
-    });
-
-    // Firebase aktualisieren, falls Punkte sich geändert haben
-    if(Object.keys(updates).length > 0){
-      db.ref('tipps/'+idx).update(updates).then(()=>{
-        anzeigen(daten);
-        anzeigenSaison();
-      });
-    } else {
-      anzeigen(daten);
-      anzeigenSaison();
-    }
-  });
+const idx=parseInt(document.getElementById("rallyeSelect").value);
+db.ref('tipps/'+idx).on('value',snap=>{
+const daten=snap.val()||{};
+anzeigen(daten);
+anzeigenSaison();
+});
 }
 
 function anzeigen(daten){
@@ -423,11 +403,8 @@ const showPlatz = now >= rallye.rallyeStart || name === ownName;
 const showPS = now >= rallye.powerstageStart || name === ownName;
 
 if(showPlatz){
-
-const punkteNeu = berechnePunkte(val.breakdown, rallye);
-
 const li = document.createElement("li");
-li.innerHTML = `<strong>${name} – ${punkteNeu} Punkte</strong>`;
+li.innerHTML = `<strong>${name} – ${val.punkte} Punkte</strong>`;
 
 const details = document.createElement("div");
 details.className = "punkte-breakdown";
@@ -439,12 +416,19 @@ if(p.punkte >= 5) color = "green";
 else if(p.punkte > 0) color = "orange";
 
 // Aktueller Rallyestand
+let punktePlatz = 0;
+if (p.fahrer === rallye.endplatz[i]) {
+    punktePlatz = (i === 0) ? 7 : 5;
+} else if (rallye.endplatz.includes(p.fahrer)) {
+    punktePlatz = 2;
+}
+
 let actual = rallye.endplatz[i] ? ` (tatsächlich: ${rallye.endplatz[i]})` : "";
-text += ` ${i+1}. ${p.fahrer} → <span style="color:${color}">${p.punkte} Punkte</span>${actual}\n`;
-});
+text += ` ${i+1}. ${p.fahrer} → <span style="color:${color}">${punktePlatz} Punkte</span>${actual}\n`;
 
 // Erster Ausfall
 let ausfallP = (val.breakdown.ausfall?.fahrer === rallye.ausfall) ? 3 : 0;
+
 let colorAusfall = ausfallP > 0 ? "green" : "red";
 let actualAusfall = rallye.ausfall ? ` (tatsächlich: ${rallye.ausfall})` : "";
 text += `Erster Ausfall: ${val.breakdown.ausfall.fahrer} → <span style="color:${colorAusfall}">${ausfallP} Punkte</span>${actualAusfall}\n`;
@@ -471,35 +455,6 @@ liste.appendChild(li);
 });
 }
 
-function berechnePunkte(breakdown, rallye) {
-  let punkte = 0;
-
-  // Endplatzierungen
-  breakdown.platz.forEach((p, i) => {
-    if (p.fahrer === rallye.endplatz[i]) {
-      punkte += (i === 0) ? 7 : 5;
-    } else if (rallye.endplatz.includes(p.fahrer)) {
-      punkte += 2;
-    }
-  });
-
-  // Power Stage
-  breakdown.powerstage.forEach((p, i) => {
-    if (p.fahrer === rallye.powerstage[i]) {
-      punkte += (i === 0) ? 4 : 3;
-    } else if (rallye.powerstage.includes(p.fahrer)) {
-      punkte += 2;
-    }
-  });
-
-  // Erster Ausfall
-  if (breakdown.ausfall?.fahrer === rallye.ausfall) {
-    punkte += 3;
-  }
-
-  return punkte;
-}
-
 function anzeigenSaison(){
 const saisonListe = document.getElementById("saisonRangliste");
 saisonListe.innerHTML="";
@@ -513,10 +468,7 @@ rallyes.forEach((r,i)=>{
 db.ref('tipps/'+i).once('value').then(snap=>{
 const rDaten = snap.val()||{};
 Object.entries(rDaten).forEach(([name,val])=>{
-
-const neu = berechnePunkte(val.breakdown, rallyes[i]);
-punkteMap[name] = (punkteMap[name] || 0) + neu;
-
+punkteMap[name] = (punkteMap[name]||0) + val.punkte;
 if(!rallyeMap[name]) rallyeMap[name] = [];
 rallyeMap[name][i] = val.breakdown;
 });
@@ -668,3 +620,4 @@ document.getElementById("deadlineAusfall").textContent =
 
 </script>
 </body>
+</html>
