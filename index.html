@@ -175,7 +175,7 @@ bgImage: "images/kenia.jpg"
 },
 {
 name:"Kroatien",
-rallyeStart: Date.UTC(2026,3,2,10,0,0),
+rallyeStart: Date.UTC(2026,0,2,10,0,0),
 powerstageStart: Date.UTC(2026,3,5,15,0,0),
 endplatz: [],
 powerstage: [],
@@ -478,16 +478,25 @@ function anzeigen(daten){
 
 function anzeigenSaison() {
     const saisonListe = document.getElementById("saisonRangliste");
-    saisonListe.innerHTML = "";
+    saisonListe.innerHTML = ""; // ✅ Liste vorher leeren, verhindert Duplikate
 
-    const punkteMap = {};  // Gesamtpunkte pro Fahrer
-    const rallyeMap = {};  // Punkte pro Rallye pro Fahrer
+    const punkteMap = {};     // Gesamtpunkte pro Fahrer
+    const rallyeMap = {};     // Breakdown pro Rallye
 
-    const promises = rallyes.map((r, i) => {
-        return db.ref('tipps/' + i).once('value').then(snap => {
+    let ralliesProcessed = 0;
+
+    rallyes.forEach((r, i) => {
+        if (r.name === "bitte Rallye auswählen") {
+            ralliesProcessed++;
+            return;
+        }
+
+        db.ref('tipps/' + i).once('value').then(snap => {
             const rDaten = snap.val() || {};
+
             Object.entries(rDaten).forEach(([name, val]) => {
-                // Punkte für diese Rallye berechnen
+
+                // --- Punkte für diese Rallye berechnen ---
                 let rallyePunkte = 0;
 
                 val.breakdown.platz.forEach((p, j) => {
@@ -502,50 +511,62 @@ function anzeigenSaison() {
 
                 if (val.breakdown.ausfall?.fahrer === r.ausfall) rallyePunkte += 3;
 
-                // Gesamtpunkte pro Fahrer
+                // Gesamtpunkte
                 punkteMap[name] = (punkteMap[name] || 0) + rallyePunkte;
 
-                // Breakdown für Rallye speichern (nur einmal pro Fahrer)
+                // Breakdown für diese Rallye speichern
                 if (!rallyeMap[name]) rallyeMap[name] = [];
-                if (!rallyeMap[name][i]) rallyeMap[name][i] = val.breakdown;
+                rallyeMap[name][i] = val.breakdown;
             });
+
+            ralliesProcessed++;
+
+            // Wenn alle Rallyes verarbeitet
+            if (ralliesProcessed === rallyes.length) {
+
+                // Sortieren nach Gesamtpunkten absteigend
+                Object.entries(punkteMap)
+                    .sort((a, b) => b[1] - a[1])
+                    .forEach(([name, total]) => {
+                        const li = document.createElement("li");
+                        li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
+
+                        const details = document.createElement("div");
+                        details.className = "punkte-breakdown";
+
+                        let html = "";
+                        rallyes.forEach((rallye, j) => {
+                            if (rallye.name === "bitte Rallye auswählen") return;
+
+                            const breakdown = rallyeMap[name][j];
+                            let sum = 0;
+
+                            if (breakdown) {
+                                // Endplatzierungen live berechnen
+                                breakdown.platz.forEach((p, k) => {
+                                    if (p.fahrer === rallye.endplatz[k]) sum += (k === 0) ? 7 : 5;
+                                    else if (rallye.endplatz.includes(p.fahrer)) sum += 2;
+                                });
+
+                                // Power Stage live berechnen
+                                breakdown.powerstage.forEach((p, k) => {
+                                    if (p.fahrer === rallye.powerstage[k]) sum += (k === 0) ? 4 : 3;
+                                    else if (rallye.powerstage.includes(p.fahrer)) sum += 2;
+                                });
+
+                                // Erster Ausfall live berechnen
+                                if (breakdown.ausfall?.fahrer === rallye.ausfall) sum += 3;
+                            }
+
+                            html += `${rallye.name}: ${sum} Punkte<br>`;
+                        });
+
+                        details.innerHTML = html;
+                        li.appendChild(details);
+                        saisonListe.appendChild(li);
+                    });
+            }
         });
-    });
-
-    // Nachdem alle Rallyen geladen sind, Liste einmalig rendern
-    Promise.all(promises).then(() => {
-        Object.entries(punkteMap)
-            .sort((a, b) => b[1] - a[1])
-            .forEach(([name, total]) => {
-                const li = document.createElement("li");
-                li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
-
-                const details = document.createElement("div");
-                details.className = "punkte-breakdown";
-
-                let html = "";
-                rallyes.forEach((r, j) => {
-                    if (r.name === "bitte Rallye auswählen") return;
-                    const breakdown = rallyeMap[name][j];
-                    let sum = 0;
-                    if (breakdown) {
-                        breakdown.platz.forEach((p, k) => {
-                            if (p.fahrer === r.endplatz[k]) sum += (k === 0) ? 7 : 5;
-                            else if (r.endplatz.includes(p.fahrer)) sum += 2;
-                        });
-                        breakdown.powerstage.forEach((p, k) => {
-                            if (p.fahrer === r.powerstage[k]) sum += (k === 0) ? 4 : 3;
-                            else if (r.powerstage.includes(p.fahrer)) sum += 2;
-                        });
-                        if (breakdown.ausfall?.fahrer === r.ausfall) sum += 3;
-                    }
-                    html += `${r.name}: ${sum} Punkte<br>`;
-                });
-
-                details.innerHTML = html;
-                li.appendChild(details);
-                saisonListe.appendChild(li);
-            });
     });
 }
 
