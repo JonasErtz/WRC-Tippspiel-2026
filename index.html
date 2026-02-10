@@ -166,7 +166,7 @@ bgImage: "images/schweden.jpg"
 },
 {
 name:"Kenia",
-rallyeStart: Date.UTC(2026,0,5,10,0,0),
+rallyeStart: Date.UTC(2026,2,5,10,0,0),
 powerstageStart: Date.UTC(2026,2,8,15,0,0),
 endplatz: ["Evans","Neuville","Ogier","Lappi","Sordo"],
 powerstage: [],
@@ -478,26 +478,30 @@ function anzeigen(daten){
 
 function anzeigenSaison(){
     const saisonListe = document.getElementById("saisonRangliste");
-    saisonListe.innerHTML=""; // ← sauber leeren
+    saisonListe.innerHTML=""; // Liste sauber leeren
 
     const punkteMap = {}; // Gesamtpunkte pro Fahrer
-    const rallyeMap = {}; // Breakdown pro Rallye pro Fahrer
+    const rallyeMap = {}; // Punkte pro Rallye pro Fahrer
 
-    const promises = rallyes.map((r,i)=>{
-        return db.ref('tipps/'+i).once('value').then(snap=>{
-            const rDaten = snap.val()||{};
-            Object.entries(rDaten).forEach(([name,val])=>{
-                // Live Punkte berechnen
+    // Array von Promises für alle Rallyes
+    const promises = rallyes.map((r,i) => {
+        return db.ref('tipps/'+i).once('value').then(snap => {
+            const rDaten = snap.val() || {};
+            Object.entries(rDaten).forEach(([name,val]) => {
+
+                // --- Live Punkte berechnen ---
                 let rallyePunkte = 0;
 
                 val.breakdown.platz.forEach((p,j)=>{
                     if(p.fahrer === r.endplatz[j]) rallyePunkte += (j===0)?7:5;
                     else if(r.endplatz.includes(p.fahrer)) rallyePunkte += 2;
                 });
+
                 val.breakdown.powerstage.forEach((p,j)=>{
                     if(p.fahrer === r.powerstage[j]) rallyePunkte += (j===0)?4:3;
                     else if(r.powerstage.includes(p.fahrer)) rallyePunkte += 2;
                 });
+
                 if(val.breakdown.ausfall?.fahrer === r.ausfall) rallyePunkte += 3;
 
                 punkteMap[name] = (punkteMap[name] || 0) + rallyePunkte;
@@ -508,9 +512,9 @@ function anzeigenSaison(){
         });
     });
 
-    Promise.all(promises).then(()=>{
-        // ← Hier nur einmal pro Fahrer die LI erzeugen
-        Object.entries(punkteMap).sort((a,b)=>b[1]-a[1]).forEach(([name,total])=>{
+    // Erst wenn alle Rallyes geladen sind, die Saisonliste bauen
+    Promise.all(promises).then(() => {
+        Object.entries(punkteMap).sort((a,b)=>b[1]-a[1]).forEach(([name,total]) => {
             const li = document.createElement("li");
             li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
             const details = document.createElement("div");
