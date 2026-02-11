@@ -119,6 +119,12 @@ if(savedUser){
     currentUser = savedUser;
 }
 
+// Auto-Login prüfen
+const savedUser = localStorage.getItem("wrcUser");
+if(savedUser){
+    currentUser = savedUser;
+}
+
 const fahrer = ["Armstrong","Bertelli","Evans","Fourmaux","Katsuta","Lappi","McErlean","Munster","Neuville","Ogier","Paddon","Pajari","Sesks","Solberg","Sordo","-"];
 
 const rallyes = [
@@ -313,6 +319,25 @@ if(!document.getElementById("logoutButton")){
     this.style.display = "none";
     alert("Abgemeldet!");
 });
+
+document.getElementById("logoutButton").addEventListener("click", function(){
+    currentUser = null;
+    localStorage.removeItem("wrcUser");
+    document.getElementById("name").disabled = false;
+    document.getElementById("name").value = "";
+    document.getElementById("password").value = "";
+    this.style.display = "none";
+    alert("Abgemeldet!");
+});
+
+// Wenn User gespeichert → automatisch einloggen
+if(currentUser){
+    document.getElementById("name").value = currentUser;
+    document.getElementById("name").disabled = true;
+    document.getElementById("logoutButton").style.display = "inline-block";
+    ladeEigeneTipps();
+    tippsHolen();
+}
 
     // Tipps abgeben
     document.getElementById("tipButton").addEventListener("click", function(){
