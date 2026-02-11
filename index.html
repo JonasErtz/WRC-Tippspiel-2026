@@ -43,6 +43,33 @@ ul { text-align: left; }
     color: #666;
     margin-bottom: 10px;
 }
+
+
+#aktualisierenButton {
+    background-color: #1E90FF; /* leuchtendes Blau */
+    color: white;
+    font-weight: bold;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+#aktualisierenButton:hover {
+    background-color: #63B8FF; /* helleres Blau beim Hover */
+}
+
+#aktualisierenButton:active {
+    transform: rotate(20deg); /* kurze Drehung beim Klicken */
+}
+
+
+
+
+
+
+
 </style>
 </head>
 <body>
@@ -90,7 +117,9 @@ ul { text-align: left; }
 <select id="ausfall"><option value="">Fahrer wählen</option></select>
 
 <button id="tipButton">Tipp abgeben</button>
-<button id="aktualisierenButton">Aktualisieren</button>
+
+<h4>Klicke hier um die Ergebnisse zu aktualisieren!</h4>
+<button id="aktualisierenButton">🔄 Aktualisieren 🔄</button>
 
 
 <h2>📊 Rangliste (aktuelle Rallye)</h2>
@@ -627,6 +656,23 @@ document.addEventListener("DOMContentLoaded", function(){
         ladeEigeneTipps();
     }
 });
+
+
+
+
+
+
+
+document.getElementById("aktualisierenButton").addEventListener("click", function() {
+    const btn = this;
+    btn.style.transform = "rotate(360deg)"; // volle Drehung beim Klick
+    setTimeout(() => {
+        location.reload();
+    }, 300); // 300ms Verzögerung, damit die Animation sichtbar ist
+});
+
+
+
 
 
 </script>
