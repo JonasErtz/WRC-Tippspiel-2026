@@ -249,30 +249,6 @@ document.addEventListener("DOMContentLoaded", function(){
     
     
     
-    document.addEventListener("DOMContentLoaded", function(){
-    // Rallye-Dropdown befüllen ...
-    const rallyeSelect = document.getElementById("rallyeSelect");
-    rallyes.forEach((r,i)=>{
-        const o=document.createElement("option"); o.value=i; o.text=r.name;
-        rallyeSelect.appendChild(o);
-    });
-
-    // gespeicherte Rallye wiederherstellen
-    const savedRallye = localStorage.getItem("aktuelleRallye");
-    if(savedRallye !== null) {
-        rallyeSelect.value = savedRallye;
-    }
-
-    // restlicher DOMContentLoaded-Code ...
-});
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     // Dropdowns befüllen
@@ -379,16 +355,6 @@ document.addEventListener("DOMContentLoaded", function(){
     
     
     
-    document.getElementById("rallyeSelect").addEventListener("change", function() {
-    const selected = this.value;
-    localStorage.setItem("aktuelleRallye", selected);  // <-- speichern
-    resetFields();
-    if(currentUser) document.getElementById("name").value = currentUser;
-    checkDeadline();
-    tippsHolen();
-    ladeEigeneTipps();
-    updateBackground();
-});
     
     
     
