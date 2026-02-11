@@ -59,6 +59,7 @@ ul { text-align: left; }
 <input id="password" type="password" placeholder="Passwort">
 <button id="loginButton">Anmelden / Registrieren</button>
 <button id="changePwButton">Passwort ändern</button>
+<button id="logoutButton" style="display:none;">Abmelden</button>
 </div>
 
 <h3>Endplatzierungen (Plätze 1–5)</h3>
@@ -113,9 +114,13 @@ const db = firebase.database();
 
 let currentUser = null;
 
+// Auto-Login: User aus localStorage
+currentUser = localStorage.getItem("wrcUser");
+
 const fahrer = ["Armstrong","Bertelli","Evans","Fourmaux","Katsuta","Lappi","McErlean","Munster","Neuville","Ogier","Paddon","Pajari","Sesks","Solberg","Sordo","-"];
 
 const rallyes = [
+
     {name:"bitte Rallye auswählen",
         rallyeStart: Date.UTC(2026,0,22,15,5,0),
         powerstageStart: Date.UTC(2026,0,22,15,5,0),
@@ -265,7 +270,9 @@ document.addEventListener("DOMContentLoaded", function(){
                 db.ref("users/"+name).set({password:pw}).then(()=>{
                     alert("Registriert & angemeldet!");
                     currentUser = name;
+                    localStorage.setItem("wrcUser", name);
                     document.getElementById("name").disabled = true;
+                    document.getElementById("logoutButton").style.display = "inline-block";
                     ladeEigeneTipps();
                     tippsHolen();
                 });
@@ -273,7 +280,9 @@ document.addEventListener("DOMContentLoaded", function(){
                 if(data.password===pw){
                     alert("Erfolgreich angemeldet!");
                     currentUser=name;
+                    localStorage.setItem("wrcUser", name);
                     document.getElementById("name").disabled = true;
+                    document.getElementById("logoutButton").style.display = "inline-block";
                     ladeEigeneTipps();
                     tippsHolen();
                 } else alert("Falsches Passwort!");
@@ -281,10 +290,22 @@ document.addEventListener("DOMContentLoaded", function(){
         });
     });
 
+    // Passwort ändern
     document.getElementById("changePwButton").addEventListener("click", function(){
         if(!currentUser){ alert("Bitte zuerst anmelden!"); return; }
         const neu = prompt("Neues Passwort eingeben:");
         if(neu) db.ref("users/"+currentUser+"/password").set(neu).then(()=>alert("Passwort geändert!"));
+    });
+
+    // Logout
+    document.getElementById("logoutButton").addEventListener("click", function(){
+        currentUser = null;
+        localStorage.removeItem("wrcUser");
+        document.getElementById("name").disabled = false;
+        document.getElementById("name").value = "";
+        document.getElementById("password").value = "";
+        this.style.display = "none";
+        alert("Abgemeldet!");
     });
 
     // Tipps abgeben
@@ -327,8 +348,21 @@ document.addEventListener("DOMContentLoaded", function(){
         updateCountdowns();
     }, 1000);
 
-    updateBackground();
+    // Auto-Login beim Laden
+    if(currentUser){
+        document.getElementById("name").value = currentUser;
+        document.getElementById("name").disabled = true;
+        document.getElementById("logoutButton").style.display = "inline-block";
+        ladeEigeneTipps();
+        tippsHolen();
+    }
+updateBackground();
 });
+
+// --- RESTLICHE FUNKTIONEN
+
+
+
 
 // --- Funktionen: eigene Tipps laden ---
 function ladeEigeneTipps(){
