@@ -90,7 +90,6 @@ ul { text-align: left; }
 <select id="ausfall"><option value="">Fahrer wählen</option></select>
 
 <button id="tipButton">Tipp abgeben</button>
-<button id="refreshButton">🔄 Aktualisieren</button>
 
 
 <h2>📊 Rangliste (aktuelle Rallye)</h2>
@@ -152,7 +151,7 @@ const rallyes = [
         powerstageStart: Date.UTC(2026,2,8,15,0,0),
         endplatz: [],
         powerstage: [], 
-        ausfall: "",
+        ausfall: "Lappi",
         bgImage: "images/kenia.jpg"},
         
     {name:"Kroatien",
@@ -370,7 +369,7 @@ updateBackground();
 function ladeEigeneTipps(){
     const idx=parseInt(document.getElementById("rallyeSelect").value);
     if(!currentUser) return;
-    db.ref("tipps/"+idx+"/"+currentUser).on("value").then(snap=>{
+    db.ref("tipps/"+idx+"/"+currentUser).once("value").then(snap=>{
         const t=snap.val(); if(!t) return;
         ["platz1","platz2","platz3","platz4","platz5"].forEach((id,i)=>document.getElementById(id).value=t.breakdown.platz[i]?.fahrer||"");
         ["ps1","ps2","ps3"].forEach((id,i)=>document.getElementById(id).value=t.breakdown.powerstage[i]?.fahrer||"");
@@ -381,7 +380,7 @@ function ladeEigeneTipps(){
 // --- Tipps holen & Ranglisten ---
 function tippsHolen() {
     const idx = parseInt(document.getElementById("rallyeSelect").value);
-    db.ref('tipps/' + idx).on('value').then(snap => {
+    db.ref('tipps/' + idx).once('value').then(snap => {
         anzeigen(snap.val() || {});
     });
     anzeigenSaison(); // nur einmal pro Rallyewechsel
@@ -582,29 +581,8 @@ function updateBackground(){
          url('${rallye.bgImage || "images/deinBild.jpg"}') center/cover no-repeat`;
 }
 
-// --- Aktualisieren Button ---
-document.getElementById("aktualisierenButton").addEventListener("click", function() {
-    if (!currentUser) { alert("Bitte zuerst anmelden!"); return; }
 
-    const idx = parseInt(document.getElementById("rallyeSelect").value);
 
-    // Firebase neu abrufen
-    db.ref('tipps/' + idx).once('value').then(snap => {
-        anzeigen(snap.val() || {});
-    });
-
-    db.ref("tipps/"+idx+"/"+currentUser).once("value").then(snap => {
-        const t = snap.val(); 
-        if(!t) return;
-        ["platz1","platz2","platz3","platz4","platz5"].forEach((id,i)=>document.getElementById(id).value=t.breakdown.platz[i]?.fahrer||"");
-        ["ps1","ps2","ps3"].forEach((id,i)=>document.getElementById(id).value=t.breakdown.powerstage[i]?.fahrer||"");
-        document.getElementById("ausfall").value=t.breakdown.ausfall?.fahrer||"";
-    });
-
-    updateCountdowns();
-    updateBackground();
-    alert("Aktualisiert!");
-});
 
 
 </script>
