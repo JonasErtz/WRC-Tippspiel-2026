@@ -91,7 +91,6 @@ ul { text-align: left; }
 
 <button id="tipButton">Tipp abgeben</button>
 
-<button id="refreshButton">🔄Aktualisieren🔄</button>
 
 <h2>📊 Rangliste (aktuelle Rallye)</h2>
 <ul id="rangliste"></ul>
@@ -583,70 +582,6 @@ function updateBackground(){
 }
 
 
-
-//Aktuallisieren
-document.getElementById("refreshButton").addEventListener("click", function() {
-    const rallyeSelect = document.getElementById("rallyeSelect");
-    const idx = parseInt(rallyeSelect.value);
-
-    // Anzeige der aktuellen Rallye komplett neu rendern
-    renderRallyeRangliste(idx);
-    renderSaisonRangliste();
-    updateBackground();
-    checkDeadline();
-    updateCountdowns();
-});
-
-// --- Funktionen, die die Ranglisten nur aus lokalen Rallye-Daten erzeugen ---
-function renderRallyeRangliste(idx){
-    const liste = document.getElementById("rangliste");
-    liste.innerHTML = "";
-
-    const rallye = rallyes[idx];
-
-    // Dummy-Tipps = die Endplatzierungen als Tipps simulieren
-    const daten = {};
-    if(rallye.endplatz.length){
-        daten["TestUser"] = {
-            breakdown: {
-                platz: rallye.endplatz.map(f => ({fahrer:f,punkte:0})),
-                powerstage: rallye.powerstage.map(f => ({fahrer:f,punkte:0})),
-                ausfall: {fahrer: rallye.ausfall, punkte:0}
-            },
-            punkte: 0
-        };
-    }
-
-    anzeigen(daten); // benutzt deine bestehende anzeigen()-Funktion
-}
-
-function renderSaisonRangliste(){
-    const saisonListe = document.getElementById("saisonRangliste");
-    saisonListe.innerHTML = "";
-
-    const punkteMap = {};
-
-    rallyes.forEach((r,i)=>{
-        r.endplatz.forEach((f,i)=>{
-            if(!punkteMap[f]) punkteMap[f]=0;
-            punkteMap[f] += (i===0?7:5);
-        });
-        r.powerstage.forEach((f,i)=>{
-            if(!punkteMap[f]) punkteMap[f]=0;
-            punkteMap[f] += (i===0?4:3);
-        });
-        if(r.ausfall){
-            if(!punkteMap[r.ausfall]) punkteMap[r.ausfall]=0;
-            punkteMap[r.ausfall]+=3;
-        }
-    });
-
-    Object.entries(punkteMap).sort((a,b)=>b[1]-a[1]).forEach(([name,total])=>{
-        const li = document.createElement("li");
-        li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
-        saisonListe.appendChild(li);
-    });
-}
 
 
 
