@@ -597,21 +597,28 @@ function updateBackground(){
          url('${rallye.bgImage || "images/deinBild.jpg"}') center/cover no-repeat`;
 }
 
-document.getElementById("refreshButton").addEventListener("click", function(){
-    const currentRallye = parseInt(document.getElementById("rallyeSelect").value);
 
-    // Alle Funktionen erneut aufrufen
-    tippsHolen();           // Tipps aus Firebase holen
-    ladeEigeneTipps();      // Eigene Tipps aktualisieren
-    checkDeadline();        // Deadlines prüfen
-    updateCountdowns();     // Countdown aktualisieren
-    updateBackground();     // Hintergrund anpassen
+function aktualisieren() {
+    const rallyeSelect = document.getElementById("rallyeSelect");
+    const aktuelleRallye = rallyeSelect.value; // aktuell gewählte Rallye merken
 
-    // Ausgewählte Rallye beibehalten
-    document.getElementById("rallyeSelect").value = currentRallye;
+    // Alle Tipps und Ranglisten neu laden
+    tippsHolen();
+    ladeEigeneTipps();
+    updateCountdowns();
+    checkDeadline();
+    updateBackground();
 
-    alert("Daten aktualisiert! 🔄");
-});
+    rallyeSelect.value = aktuelleRallye; // Auswahl wiederherstellen
+}
+
+
+
+
+
+
+
+    
 </script>
 </body>
 </html>
