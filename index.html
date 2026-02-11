@@ -596,6 +596,22 @@ function updateBackground(){
         `linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)),
          url('${rallye.bgImage || "images/deinBild.jpg"}') center/cover no-repeat`;
 }
+
+document.getElementById("refreshButton").addEventListener("click", function(){
+    const currentRallye = parseInt(document.getElementById("rallyeSelect").value);
+
+    // Alle Funktionen erneut aufrufen
+    tippsHolen();           // Tipps aus Firebase holen
+    ladeEigeneTipps();      // Eigene Tipps aktualisieren
+    checkDeadline();        // Deadlines prüfen
+    updateCountdowns();     // Countdown aktualisieren
+    updateBackground();     // Hintergrund anpassen
+
+    // Ausgewählte Rallye beibehalten
+    document.getElementById("rallyeSelect").value = currentRallye;
+
+    alert("Daten aktualisiert! 🔄");
+});
 </script>
 </body>
 </html>
