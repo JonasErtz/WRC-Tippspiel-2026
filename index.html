@@ -59,6 +59,7 @@ ul { text-align: left; }
 <input id="password" type="password" placeholder="Passwort">
 <button id="loginButton">Anmelden / Registrieren</button>
 <button id="changePwButton">Passwort ändern</button>
+<button id="logoutButton" style="display:none;">Abmelden</button>
 </div>
 
 <h3>Endplatzierungen (Plätze 1–5)</h3>
@@ -89,7 +90,7 @@ ul { text-align: left; }
 <select id="ausfall"><option value="">Fahrer wählen</option></select>
 
 <button id="tipButton">Tipp abgeben</button>
-<button id="refreshButton">Aktualisieren</button>
+
 
 <h2>📊 Rangliste (aktuelle Rallye)</h2>
 <ul id="rangliste"></ul>
@@ -101,7 +102,6 @@ ul { text-align: left; }
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
-// === Firebase Initialisierung ===
 firebase.initializeApp({
     apiKey: "AIzaSyBx6XHMMhlWpJgyeK7veKQ8i-fNVu4ohYU",
     authDomain: "wrc-tippspiel-2026.firebaseapp.com",
@@ -113,10 +113,12 @@ firebase.initializeApp({
 });
 const db = firebase.database();
 
-// === Variablen ===
 let currentUser = null;
-const fahrer = ["Armstrong","Bertelli","Evans","Fourmaux","Katsuta","Lappi","McErlean","Munster","Neuville","Ogier","Paddon","Pajari","Sesks","Solberg","Sordo","-"];
 
+// Auto-Login: User aus localStorage
+currentUser = localStorage.getItem("wrcUser");
+
+const fahrer = ["Armstrong","Bertelli","Evans","Fourmaux","Katsuta","Lappi","McErlean","Munster","Neuville","Ogier","Paddon","Pajari","Sesks","Solberg","Sordo","-"];
 
 const rallyes = [
 
@@ -149,7 +151,7 @@ const rallyes = [
         powerstageStart: Date.UTC(2026,2,8,15,0,0),
         endplatz: [],
         powerstage: [], 
-        ausfall: "",
+        ausfall: "Lappi",
         bgImage: "images/kenia.jpg"},
         
     {name:"Kroatien",
@@ -241,13 +243,8 @@ const rallyes = [
         bgImage: "images/saudiarabien.jpg"}
 ];
 
-
-
-
-// === DOMContentLoaded ===
 document.addEventListener("DOMContentLoaded", function(){
-
-    // Dropdowns mit Fahrern füllen
+    // Dropdowns befüllen
     ["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id=>{
         const select = document.getElementById(id);
         fahrer.forEach(f=>{
@@ -256,14 +253,13 @@ document.addEventListener("DOMContentLoaded", function(){
         });
     });
 
-    // Rallye Dropdown füllen
     const rallyeSelect = document.getElementById("rallyeSelect");
     rallyes.forEach((r,i)=>{
         const o=document.createElement("option"); o.value=i; o.text=r.name;
         rallyeSelect.appendChild(o);
     });
 
-    // === Login ===
+    // Login
     document.getElementById("loginButton").addEventListener("click", function(){
         const name = document.getElementById("name").value.trim();
         const pw = document.getElementById("password").value;
@@ -275,7 +271,9 @@ document.addEventListener("DOMContentLoaded", function(){
                 db.ref("users/"+name).set({password:pw}).then(()=>{
                     alert("Registriert & angemeldet!");
                     currentUser = name;
+                    localStorage.setItem("wrcUser", name);
                     document.getElementById("name").disabled = true;
+                    document.getElementById("logoutButton").style.display = "inline-block";
                     ladeEigeneTipps();
                     tippsHolen();
                 });
@@ -283,7 +281,9 @@ document.addEventListener("DOMContentLoaded", function(){
                 if(data.password===pw){
                     alert("Erfolgreich angemeldet!");
                     currentUser=name;
+                    localStorage.setItem("wrcUser", name);
                     document.getElementById("name").disabled = true;
+                    document.getElementById("logoutButton").style.display = "inline-block";
                     ladeEigeneTipps();
                     tippsHolen();
                 } else alert("Falsches Passwort!");
@@ -291,13 +291,25 @@ document.addEventListener("DOMContentLoaded", function(){
         });
     });
 
+    // Passwort ändern
     document.getElementById("changePwButton").addEventListener("click", function(){
         if(!currentUser){ alert("Bitte zuerst anmelden!"); return; }
         const neu = prompt("Neues Passwort eingeben:");
         if(neu) db.ref("users/"+currentUser+"/password").set(neu).then(()=>alert("Passwort geändert!"));
     });
 
-    // === Tipps abgeben ===
+    // Logout
+    document.getElementById("logoutButton").addEventListener("click", function(){
+        currentUser = null;
+        localStorage.removeItem("wrcUser");
+        document.getElementById("name").disabled = false;
+        document.getElementById("name").value = "";
+        document.getElementById("password").value = "";
+        this.style.display = "none";
+        alert("Abgemeldet!");
+    });
+
+    // Tipps abgeben
     document.getElementById("tipButton").addEventListener("click", function(){
         if(!currentUser){ alert("Bitte zuerst anmelden!"); return; }
 
@@ -323,7 +335,6 @@ document.addEventListener("DOMContentLoaded", function(){
         });
     });
 
-    // === Rallye Wechsel ===
     rallyeSelect.addEventListener("change", function(){
         resetFields();
         if(currentUser) document.getElementById("name").value = currentUser;
@@ -333,102 +344,28 @@ document.addEventListener("DOMContentLoaded", function(){
         updateBackground();
     });
 
-    // === Aktualisieren Button ===
-    document.getElementById("refreshButton").addEventListener("click", function() {
-        const idx = parseInt(rallyeSelect.value);
-        renderRallyeRangliste(idx);
-        renderSaisonRangliste();
-        updateBackground();
-        checkDeadline();
-        updateCountdowns();
-    });
-
     setInterval(() => {
         checkDeadline();
         updateCountdowns();
     }, 1000);
 
-    updateBackground();
+    // Auto-Login beim Laden
+    if(currentUser){
+        document.getElementById("name").value = currentUser;
+        document.getElementById("name").disabled = true;
+        document.getElementById("logoutButton").style.display = "inline-block";
+        ladeEigeneTipps();
+        tippsHolen();
+    }
+updateBackground();
 });
 
-// === Hilfsfunktionen: Countdown, Deadline, Background, eigene Tipps ===
-function resetFields(){
-    ["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id=>{
-        document.getElementById(id).value="";
-        document.getElementById(id).disabled=false;
-        document.getElementById(id).className="";
-    });
-    if(!currentUser) document.getElementById("name").value="";
-}
+// --- RESTLICHE FUNKTIONEN
 
-function checkDeadline(){
-    const now = Date.now();
-    const idx = parseInt(document.getElementById("rallyeSelect").value);
-    const rallye = rallyes[idx];
 
-    const disablePlatz = now >= rallye.rallyeStart;
-    ["platz1","platz2","platz3","platz4","platz5","ausfall"].forEach(id=>{
-        const elem=document.getElementById(id); 
-        elem.disabled=disablePlatz; 
-        elem.className=disablePlatz?"disabled":"";
-    });
 
-    const disablePS = now >= rallye.powerstageStart;
-    ["ps1","ps2","ps3"].forEach(id=>{
-        const elem=document.getElementById(id); 
-        elem.disabled=disablePS; 
-        elem.className=disablePS?"disabled":"";
-    });
 
-    const tipButton=document.getElementById("tipButton");
-    tipButton.disabled = disablePlatz && disablePS;
-    tipButton.className = tipButton.disabled?"disabled":"";
-}
-
-function updateCountdowns(){
-    const rallye = rallyes[parseInt(document.getElementById("rallyeSelect").value)];
-    setFixedDeadline("deadlinePlatzFix", rallye.rallyeStart);
-    setFixedDeadline("deadlineAusfallFix", rallye.rallyeStart);
-    setFixedDeadline("deadlinePSFix", rallye.powerstageStart);
-
-    setCountdown("deadlinePlatz", rallye.rallyeStart);
-    setCountdown("deadlineAusfall", rallye.rallyeStart);
-    setCountdown("deadlinePS", rallye.powerstageStart);
-}
-
-function setCountdown(elementId, timestamp){
-    const el = document.getElementById(elementId);
-    if(!el) return;
-    const diff = timestamp - Date.now();
-    if(diff <=0){
-        el.innerHTML = "⛔ Deadline abgelaufen";
-        el.style.color = "red";
-        return;
-    }
-    const h = Math.floor(diff/1000/60/60);
-    const m = Math.floor((diff/1000/60)%60);
-    const s = Math.floor((diff/1000)%60);
-    el.innerHTML = `⏳ Deadline in ${h}h ${m}m ${s}s`;
-    el.style.color="#555";
-}
-
-function setFixedDeadline(elementId, timestamp){
-    const el = document.getElementById(elementId);
-    if(!el) return;
-    const d = new Date(timestamp);
-    const date = d.toLocaleDateString("de-DE");
-    const time = d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
-    el.innerHTML = `⏰ Tippabgabe bis: ${date} – ${time} Uhr`;
-}
-
-function updateBackground(){
-    const rallye = rallyes[parseInt(document.getElementById("rallyeSelect").value)];
-    document.getElementById("background").style.background = 
-        `linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)),
-         url('${rallye.bgImage || "images/deinBild.jpg"}') center/cover no-repeat`;
-}
-
-// === Eigene Tipps laden ===
+// --- Funktionen: eigene Tipps laden ---
 function ladeEigeneTipps(){
     const idx=parseInt(document.getElementById("rallyeSelect").value);
     if(!currentUser) return;
@@ -440,15 +377,16 @@ function ladeEigeneTipps(){
     });
 }
 
-// === Ranglisten generieren ===
+// --- Tipps holen & Ranglisten ---
 function tippsHolen() {
     const idx = parseInt(document.getElementById("rallyeSelect").value);
     db.ref('tipps/' + idx).once('value').then(snap => {
         anzeigen(snap.val() || {});
     });
-    anzeigenSaison();
+    anzeigenSaison(); // nur einmal pro Rallyewechsel
 }
 
+// --- Aktuelle Rallye Rangliste ---
 function anzeigen(daten){
     const liste = document.getElementById("rangliste");
     liste.innerHTML = "";
@@ -482,15 +420,12 @@ function anzeigen(daten){
                 let actual = rallye.endplatz[i]?` (tatsächlich: ${rallye.endplatz[i]})`:"";
                 text += ` ${i+1}. ${p.fahrer} → <span style="color:${color}">${livePunkte} Punkte</span>${actual}\n`;
             });
-
-
-
-let ausfallP = val.breakdown.ausfall?.fahrer===rallye.ausfall?3:0;
+            let ausfallP = val.breakdown.ausfall?.fahrer===rallye.ausfall?3:0;
             text += `Erster Ausfall: ${val.breakdown.ausfall.fahrer} → <span style="color:${ausfallP>0?"green":"red"}">${ausfallP} Punkte</span>${rallye.ausfall?` (tatsächlich: ${rallye.ausfall})`:""}\n`;
 
-if(showPS){
+            if(showPS){
                 text+="Power Stage:\n";
-                val.breakdown.powerstage.forEach((p,i)=>{
+                                val.breakdown.powerstage.forEach((p,i)=>{
                     let livePunkte = 0;
                     if(p.fahrer === rallye.powerstage[i]) livePunkte = (i===0)?4:3;
                     else if(rallye.powerstage.includes(p.fahrer)) livePunkte = 2;
@@ -568,16 +503,88 @@ function anzeigenSaison() {
     });
 }
 
-// --- Funktionen für den „Aktualisieren“ Button ---
-function renderRallyeRangliste(idx){
-    db.ref('tipps/' + idx).once('value').then(snap => {
-        anzeigen(snap.val() || {});
+// --- Reset & Deadlines ---
+function resetFields(){
+    ["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id=>{
+        document.getElementById(id).value="";
+        document.getElementById(id).disabled=false;
+        document.getElementById(id).className="";
     });
+    if(!currentUser) document.getElementById("name").value="";
 }
 
-function renderSaisonRangliste(){
-    anzeigenSaison();
+function checkDeadline(){
+    const now = Date.now();
+    const rallyeSelectVal = parseInt(document.getElementById("rallyeSelect").value);
+    const rallye = rallyes[rallyeSelectVal];
+
+    const disablePlatz = now >= rallye.rallyeStart;
+    ["platz1","platz2","platz3","platz4","platz5","ausfall"].forEach(id=>{
+        const elem=document.getElementById(id); 
+        elem.disabled=disablePlatz; 
+        elem.className=disablePlatz?"disabled":"";
+    });
+
+    const disablePS = now >= rallye.powerstageStart;
+    ["ps1","ps2","ps3"].forEach(id=>{
+        const elem=document.getElementById(id); 
+        elem.disabled=disablePS; 
+        elem.className=disablePS?"disabled":"";
+    });
+
+    const tipButton=document.getElementById("tipButton");
+    tipButton.disabled = disablePlatz && disablePS;
+    tipButton.className = tipButton.disabled?"disabled":"";
 }
+
+// --- Countdown & Hintergrund ---
+function updateCountdowns(){
+    const rallye = rallyes[parseInt(document.getElementById("rallyeSelect").value)];
+    setFixedDeadline("deadlinePlatzFix", rallye.rallyeStart);
+    setFixedDeadline("deadlineAusfallFix", rallye.rallyeStart);
+    setFixedDeadline("deadlinePSFix", rallye.powerstageStart);
+
+    setCountdown("deadlinePlatz", rallye.rallyeStart);
+    setCountdown("deadlineAusfall", rallye.rallyeStart);
+    setCountdown("deadlinePS", rallye.powerstageStart);
+}
+
+function setCountdown(elementId, timestamp){
+    const el = document.getElementById(elementId);
+    if(!el) return;
+    const diff = timestamp - Date.now();
+    if(diff <=0){
+        el.innerHTML = "⛔ Deadline abgelaufen";
+        el.style.color = "red";
+        return;
+    }
+    const h = Math.floor(diff/1000/60/60);
+    const m = Math.floor((diff/1000/60)%60);
+    const s = Math.floor((diff/1000)%60);
+    el.innerHTML = `⏳ Deadline in ${h}h ${m}m ${s}s`;
+    el.style.color="#555";
+}
+
+function setFixedDeadline(elementId, timestamp){
+    const el = document.getElementById(elementId);
+    if(!el) return;
+    const d = new Date(timestamp);
+    const date = d.toLocaleDateString("de-DE");
+    const time = d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+    el.innerHTML = `⏰ Tippabgabe bis: ${date} – ${time} Uhr`;
+}
+
+function updateBackground(){
+    const rallye = rallyes[parseInt(document.getElementById("rallyeSelect").value)];
+    document.getElementById("background").style.background = 
+        `linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)),
+         url('${rallye.bgImage || "images/deinBild.jpg"}') center/cover no-repeat`;
+}
+
+
+
+
+
 </script>
 </body>
 </html>
