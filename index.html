@@ -183,7 +183,7 @@ const rallyes = [
         powerstageStart: Date.UTC(2026,2,8,15,0,0),
         endplatz: [],
         powerstage: [], 
-        ausfall: "Lappi",
+        ausfall: "",
         bgImage: "images/kenia.jpg"},
         
     {name:"Kroatien",
@@ -504,30 +504,38 @@ function anzeigen(daten){
 // --- Saison-Rangliste ---
 function anzeigenSaison() {
     const saisonListe = document.getElementById("saisonRangliste");
-    saisonListe.innerHTML = ""; // vorher leeren
+    saisonListe.innerHTML = ""; // Liste vorher leeren
 
     const punkteMap = {};   // Gesamtpunkte pro Fahrer
     const rallyeMap = {};   // Punkte pro Rallye pro Fahrer
 
-    const promises = rallyes.map((r, i)=>{
-        return db.ref('tipps/'+i).once('value').then(snap=>{
+    // Alle Rallyes durchgehen und Punkte sammeln
+    const promises = rallyes.map((r, i) => {
+        return db.ref('tipps/' + i).once('value').then(snap => {
             const daten = snap.val() || {};
-            Object.entries(daten).forEach(([name, val])=>{
+            Object.entries(daten).forEach(([name, val]) => {
                 let rallyePunkte = 0;
+
+                // Endplatzierungen
                 if(val.breakdown?.platz){
-                    val.breakdown.platz.forEach((p,j)=>{
-                        if(p.fahrer===r.endplatz[j]) rallyePunkte += (j===0?7:5);
+                    val.breakdown.platz.forEach((p, j) => {
+                        if(p.fahrer === r.endplatz[j]) rallyePunkte += (j===0?7:5);
                         else if(r.endplatz.includes(p.fahrer)) rallyePunkte += 2;
                     });
                 }
+
+                // Power Stage
                 if(val.breakdown?.powerstage){
-                    val.breakdown.powerstage.forEach((p,j)=>{
-                        if(p.fahrer===r.powerstage[j]) rallyePunkte += (j===0?4:3);
+                    val.breakdown.powerstage.forEach((p, j) => {
+                        if(p.fahrer === r.powerstage[j]) rallyePunkte += (j===0?4:3);
                         else if(r.powerstage.includes(p.fahrer)) rallyePunkte += 2;
                     });
                 }
-                if(val.breakdown?.ausfall?.fahrer===r.ausfall) rallyePunkte += 3;
 
+                // Erster Ausfall
+                if(val.breakdown?.ausfall?.fahrer === r.ausfall) rallyePunkte += 3;
+
+                // Punkte nur einmal pro Fahrer summieren
                 if(!punkteMap[name]) punkteMap[name] = 0;
                 punkteMap[name] += rallyePunkte;
 
@@ -537,18 +545,20 @@ function anzeigenSaison() {
         });
     });
 
-    Promise.all(promises).then(()=>{
+    // Nach allen Rallyes die Liste anzeigen
+    Promise.all(promises).then(() => {
         Object.entries(punkteMap)
-            .sort((a,b)=>b[1]-a[1])
-            .forEach(([name,total])=>{
+            .sort((a,b) => b[1] - a[1]) // absteigend sortieren
+            .forEach(([name, total]) => {
                 const li = document.createElement("li");
                 li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
+
                 const details = document.createElement("div");
                 details.className = "punkte-breakdown";
 
                 let html = "";
-                rallyes.forEach((r,j)=>{
-                    if(r.name==="bitte Rallye auswählen") return;
+                rallyes.forEach((r, j) => {
+                    if(r.name === "bitte Rallye auswählen") return;
                     const sum = rallyeMap[name][j] || 0;
                     html += `${r.name}: ${sum} Punkte<br>`;
                 });
