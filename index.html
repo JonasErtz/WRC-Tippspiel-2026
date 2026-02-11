@@ -90,7 +90,7 @@ ul { text-align: left; }
 <select id="ausfall"><option value="">Fahrer wählen</option></select>
 
 <button id="tipButton">Tipp abgeben</button>
-<button id="aktualisierenButton">🔄Aktualisieren</button>
+<button id="aktualisierenButton">Aktualisieren</button>
 
 
 <h2>📊 Rangliste (aktuelle Rallye)</h2>
@@ -608,7 +608,24 @@ function updateBackground(){
 
 
 document.getElementById("aktualisierenButton").addEventListener("click", function() {
+    // Speichere die aktuelle Rallye-Auswahl
+    const rallyeIndex = document.getElementById("rallyeSelect").value;
+    localStorage.setItem("aktuelleRallye", rallyeIndex);
+
+    // Seite neu laden
     location.reload();
+});
+
+// Beim Laden die letzte Auswahl wiederherstellen
+document.addEventListener("DOMContentLoaded", function(){
+    const gespeicherteRallye = localStorage.getItem("aktuelleRallye");
+    if(gespeicherteRallye !== null){
+        document.getElementById("rallyeSelect").value = gespeicherteRallye;
+        // Optional: Hintergrund aktualisieren & Tipps laden
+        updateBackground();
+        tippsHolen();
+        ladeEigeneTipps();
+    }
 });
 
 
