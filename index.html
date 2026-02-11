@@ -91,7 +91,7 @@ ul { text-align: left; }
 
 <button id="tipButton">Tipp abgeben</button>
 
-<button id="refreshButton">Aktualisieren</button>
+<button id="refreshButton">🔄Aktualisieren🔄</button>
 
 <h2>📊 Rangliste (aktuelle Rallye)</h2>
 <ul id="rangliste"></ul>
@@ -582,47 +582,58 @@ function updateBackground(){
          url('${rallye.bgImage || "images/deinBild.jpg"}') center/cover no-repeat`;
 }
 
-// --- Aktualisieren Button ---
+
+
+//Aktuallisieren
 document.getElementById("refreshButton").addEventListener("click", function() {
     const rallyeSelect = document.getElementById("rallyeSelect");
-    const currentIdx = parseInt(rallyeSelect.value); // aktuelle Auswahl merken
+    const idx = parseInt(rallyeSelect.value);
 
-    // Ranglisten und eigene Tipps aus den lokalen Rallye-Daten neu anzeigen
-    tippsHolenLocal(currentIdx);
-    ladeEigeneTippsLocal(currentIdx);
+    // Anzeige der aktuellen Rallye komplett neu rendern
+    renderRallyeRangliste(idx);
+    renderSaisonRangliste();
     updateBackground();
     checkDeadline();
     updateCountdowns();
 });
 
-// --- Lokale Anzeige ohne Firebase ---
-function tippsHolenLocal(idx){
-    const daten = {}; // wir simulieren, dass alle Tipps von der Seite kommen
-    // Hier kannst du manuell die Endplatzierungen ändern, z. B. rallyes[idx].endplatz = [...]
-    anzeigen({}); // nur Anzeige aktualisieren, keine Firebase-Abfrage
-    anzeigenSaisonLocal();
+// --- Funktionen, die die Ranglisten nur aus lokalen Rallye-Daten erzeugen ---
+function renderRallyeRangliste(idx){
+    const liste = document.getElementById("rangliste");
+    liste.innerHTML = "";
+
+    const rallye = rallyes[idx];
+
+    // Dummy-Tipps = die Endplatzierungen als Tipps simulieren
+    const daten = {};
+    if(rallye.endplatz.length){
+        daten["TestUser"] = {
+            breakdown: {
+                platz: rallye.endplatz.map(f => ({fahrer:f,punkte:0})),
+                powerstage: rallye.powerstage.map(f => ({fahrer:f,punkte:0})),
+                ausfall: {fahrer: rallye.ausfall, punkte:0}
+            },
+            punkte: 0
+        };
+    }
+
+    anzeigen(daten); // benutzt deine bestehende anzeigen()-Funktion
 }
 
-function ladeEigeneTippsLocal(idx){
-    // lokale Tipps bleiben wie bisher oder leere Felder
-    resetFields();
-}
-
-function anzeigenSaisonLocal() {
+function renderSaisonRangliste(){
     const saisonListe = document.getElementById("saisonRangliste");
     saisonListe.innerHTML = "";
 
-    // Einfach die lokalen Rallye-Ergebnisse auswerten
     const punkteMap = {};
-    rallyes.forEach((r, i) => {
-        if(r.name === "bitte Rallye auswählen") return;
-        r.endplatz.forEach((fahrer, j) => {
-            if(!punkteMap[fahrer]) punkteMap[fahrer] = 0;
-            punkteMap[fahrer] += (j===0?7:5); // einfache Punkte
+
+    rallyes.forEach((r,i)=>{
+        r.endplatz.forEach((f,i)=>{
+            if(!punkteMap[f]) punkteMap[f]=0;
+            punkteMap[f] += (i===0?7:5);
         });
-        r.powerstage.forEach((fahrer, j) => {
-            if(!punkteMap[fahrer]) punkteMap[fahrer] = 0;
-            punkteMap[fahrer] += (j===0?4:3);
+        r.powerstage.forEach((f,i)=>{
+            if(!punkteMap[f]) punkteMap[f]=0;
+            punkteMap[f] += (i===0?4:3);
         });
         if(r.ausfall){
             if(!punkteMap[r.ausfall]) punkteMap[r.ausfall]=0;
@@ -630,13 +641,11 @@ function anzeigenSaisonLocal() {
         }
     });
 
-    Object.entries(punkteMap)
-        .sort((a,b)=>b[1]-a[1])
-        .forEach(([name, total]) => {
-            const li = document.createElement("li");
-            li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
-            saisonListe.appendChild(li);
-        });
+    Object.entries(punkteMap).sort((a,b)=>b[1]-a[1]).forEach(([name,total])=>{
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
+        saisonListe.appendChild(li);
+    });
 }
 
 
