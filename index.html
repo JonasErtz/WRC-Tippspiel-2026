@@ -45,6 +45,7 @@ ul { text-align: left; }
 }
 
 
+
 #aktualisierenButton {
     background-color: #1E90FF; /* leuchtendes Blau */
     color: white;
@@ -53,15 +54,24 @@ ul { text-align: left; }
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    transition: transform 0.3s ease, background-color 0.3s ease;
+    transition: transform 0.4s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
 #aktualisierenButton:hover {
-    background-color: #63B8FF; /* helleres Blau beim Hover */
+    background-color: #63B8FF; /* etwas heller */
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    transform: scale(1.05);
 }
 
-#aktualisierenButton:active {
-    transform: rotate(20deg); /* kurze Drehung beim Klicken */
+#aktualisierenButton.animating {
+    animation: spinScale 0.5s ease-in-out forwards;
+}
+
+@keyframes spinScale {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.2); }
+    100% { transform: rotate(360deg) scale(1); }
 }
 
 
@@ -665,10 +675,11 @@ document.addEventListener("DOMContentLoaded", function(){
 
 document.getElementById("aktualisierenButton").addEventListener("click", function() {
     const btn = this;
-    btn.style.transform = "rotate(360deg)"; // volle Drehung beim Klick
+    btn.classList.add("animating");
+
     setTimeout(() => {
-        location.reload();
-    }, 300); // 300ms Verzögerung, damit die Animation sichtbar ist
+        location.reload(); // Seite nach Animation neu laden
+    }, 500); // 500ms = Länge der Animation
 });
 
 
