@@ -91,6 +91,8 @@ ul { text-align: left; }
 
 <button id="tipButton">Tipp abgeben</button>
 
+<button id="refreshButton">🔄 Aktualisieren</button>
+
 <h2>📊 Rangliste (aktuelle Rallye)</h2>
 <ul id="rangliste"></ul>
 
@@ -251,12 +253,25 @@ document.addEventListener("DOMContentLoaded", function(){
             select.appendChild(o);
         });
     });
+    
+    
 
     const rallyeSelect = document.getElementById("rallyeSelect");
     rallyes.forEach((r,i)=>{
         const o=document.createElement("option"); o.value=i; o.text=r.name;
         rallyeSelect.appendChild(o);
     });
+    
+    document.getElementById("refreshButton").addEventListener("click", function(){
+    const currentRallye = parseInt(document.getElementById("rallyeSelect").value);
+    tippsHolen();           // Holt alle Tipps neu
+    ladeEigeneTipps();      // Lädt die eigenen Tipps
+    checkDeadline();        // Prüft Deadlines erneut
+    updateCountdowns();     // Aktualisiert die Countdown-Anzeigen
+    updateBackground();     // Optional: Hintergrundbild aktualisieren
+    document.getElementById("rallyeSelect").value = currentRallye; // Rallye-Auswahl beibehalten
+    alert("Daten aktualisiert! 🔄");
+});
 
     // Login
     document.getElementById("loginButton").addEventListener("click", function(){
