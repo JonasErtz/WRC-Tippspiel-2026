@@ -64,15 +64,7 @@ ul { text-align: left; }
     transform: scale(1.05);
 }
 
-#aktualisierenButton.animating {
-    animation: spinScale 0.5s ease-in-out forwards;
-}
 
-@keyframes spinScale {
-    0% { transform: rotate(0deg) scale(1); }
-    50% { transform: rotate(180deg) scale(1.2); }
-    100% { transform: rotate(360deg) scale(1); }
-}
 
 
 
@@ -128,7 +120,7 @@ ul { text-align: left; }
 
 <button id="tipButton">Tipp abgeben</button>
 
-<h4>Klicke hier um die Ergebnisse zu aktualisieren!</h4>
+<h5>Klicke hier um die Ergebnisse zu aktualisieren!</h5>
 <button id="aktualisierenButton">🔄 Aktualisieren 🔄</button>
 
 
@@ -406,7 +398,8 @@ document.addEventListener("DOMContentLoaded", function(){
     
     
     
-    
+     // Countdown sofort aktualisieren
+    updateCountdowns();
 
     setInterval(() => {
         checkDeadline();
