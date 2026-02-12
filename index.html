@@ -116,8 +116,9 @@ ul { text-align: left; }
 
 <h2>📊 Rangliste (aktuelle Rallye)</h2>
 <div id="ranglisteStandText" style="font-size:0.9em; color:#666; margin-bottom:5px;"></div>
-<ul id="rangliste"></ul>
 <button id="aktualisierenButton">🔄 Live Ergebnisse aktualisieren 🔄</button>
+<ul id="rangliste"></ul>
+
 
 
 <h2>🏆 Saison-Rangliste</h2>
@@ -153,7 +154,8 @@ const rallyes = [
         endplatz: [],
         powerstage: [],
         ausfall: "",
-        bgImage: "images/bild.jpg"},
+        bgImage: "images/bild.jpg"
+    },
         
     {name:"Monte Carlo",
         rallyeStart: Date.UTC(2026,0,22,15,5,0),
@@ -161,7 +163,10 @@ const rallyes = [
         endplatz: ["Solberg","Evans","Ogier","Fourmaux","Neuville"],
         powerstage: ["Evans","Solberg","Ogier"],
         ausfall: "McErlean",
-        bgImage: "images/montecarlo.jpg"},
+        bgImage: "images/montecarlo.jpg"
+        wpCompleted: 17,  // abgeschlossene WPs
+        wpTotal: 17      // Gesamtanzahl WPs
+},
         
     {name:"Schweden",
         rallyeStart: Date.UTC(2026,1,12,18,5,0),
@@ -169,7 +174,10 @@ const rallyes = [
         endplatz: [],
         powerstage: [],
         ausfall: "",
-        bgImage: "images/schweden.jpg"},
+        bgImage: "images/schweden.jpg"
+        wpCompleted: 0,  // abgeschlossene WPs
+        wpTotal: 18      // Gesamtanzahl WPs
+    },
         
     {name:"Kenia",
         rallyeStart: Date.UTC(2026,2,5,10,0,0),
