@@ -117,7 +117,7 @@ ul { text-align: left; }
 
 
 <h2>📊 Rangliste (aktuelle Rallye)</h2>
-<h5>Klicke hier um die Ergebnisse zu aktualisieren!</h5>
+<div id="ranglisteStandText" style="margin-bottom:20px; font-size:0.9em; color:#555;"></div>
 <button id="aktualisierenButton">🔄 Live Ergebnisse aktualisieren 🔄</button>
 <ul id="rangliste"></ul>
 
@@ -170,7 +170,9 @@ const rallyes = [
         endplatz: [],
         powerstage: [],
         ausfall: "",
-        bgImage: "images/schweden.jpg"},
+        bgImage: "images/schweden.jpg"
+         wpCompleted: 2,   // Anzahl abgeschlossener WP
+  wpTotal: 20       // Gesamtanzahl WP},
         
     {name:"Kenia",
         rallyeStart: Date.UTC(2026,2,5,10,0,0),
@@ -368,6 +370,7 @@ document.addEventListener("DOMContentLoaded", function(){
         tippsHolen();
         ladeEigeneTipps();
         updateBackground();
+        updateRanglisteStandText();
     });
 
 //Countdown sofort aktualisieren 
@@ -411,6 +414,7 @@ function tippsHolen() {
     const idx = parseInt(document.getElementById("rallyeSelect").value);
     db.ref('tipps/' + idx).once('value').then(snap => {
         anzeigen(snap.val() || {});
+        updateRanglisteStandText();
     });
     anzeigenSaison(); // nur einmal pro Rallyewechsel
 }
@@ -637,6 +641,22 @@ document.addEventListener("DOMContentLoaded", function(){
     ladeEigeneTipps();
 });
 
+
+
+//Welche WP
+
+function updateRanglisteStandText() {
+    const idx = parseInt(document.getElementById("rallyeSelect").value);
+    const rallye = rallyes[idx];
+    const el = document.getElementById("ranglisteStandText");
+    if(!el) return;
+
+    if(rallye.wpCompleted !== undefined && rallye.wpTotal !== undefined){
+        el.innerHTML = `Stand nach WP ${rallye.wpCompleted} von ${rallye.wpTotal}:`;
+    } else {
+        el.innerHTML = ""; // falls Rallye keine WP Angaben hat
+    }
+}
 
 
 
