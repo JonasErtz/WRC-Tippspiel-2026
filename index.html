@@ -43,19 +43,6 @@ ul { text-align: left; }
     color: #666;
     margin-bottom: 10px;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 </style>
 </head>
 <body>
@@ -102,10 +89,7 @@ ul { text-align: left; }
 </div>
 <select id="ausfall"><option value="">Fahrer wählen</option></select>
 
-<button id="tipButton">Tipp abgeben oder aktualisieren</button>
-
-<h5>Klicke hier um die Ergebnisse zu aktualisieren!</h5>
-<button id="aktualisierenButton">🔄 Live Ergebnisse aktualisieren 🔄</button>
+<button id="tipButton">Tipp abgeben</button>
 
 
 <h2>📊 Rangliste (aktuelle Rallye)</h2>
@@ -260,12 +244,6 @@ const rallyes = [
 ];
 
 document.addEventListener("DOMContentLoaded", function(){
-    
-    
-    
-    
-    
-    
     // Dropdowns befüllen
     ["platz1","platz2","platz3","platz4","platz5","ps1","ps2","ps3","ausfall"].forEach(id=>{
         const select = document.getElementById(id);
@@ -365,25 +343,6 @@ document.addEventListener("DOMContentLoaded", function(){
         ladeEigeneTipps();
         updateBackground();
     });
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-     // Countdown sofort aktualisieren
-    updateCountdowns();
 
     setInterval(() => {
         checkDeadline();
@@ -488,38 +447,30 @@ function anzeigen(daten){
 // --- Saison-Rangliste ---
 function anzeigenSaison() {
     const saisonListe = document.getElementById("saisonRangliste");
-    saisonListe.innerHTML = ""; // Liste vorher leeren
+    saisonListe.innerHTML = ""; // vorher leeren
 
     const punkteMap = {};   // Gesamtpunkte pro Fahrer
     const rallyeMap = {};   // Punkte pro Rallye pro Fahrer
 
-    // Alle Rallyes durchgehen und Punkte sammeln
-    const promises = rallyes.map((r, i) => {
-        return db.ref('tipps/' + i).once('value').then(snap => {
+    const promises = rallyes.map((r, i)=>{
+        return db.ref('tipps/'+i).once('value').then(snap=>{
             const daten = snap.val() || {};
-            Object.entries(daten).forEach(([name, val]) => {
+            Object.entries(daten).forEach(([name, val])=>{
                 let rallyePunkte = 0;
-
-                // Endplatzierungen
                 if(val.breakdown?.platz){
-                    val.breakdown.platz.forEach((p, j) => {
-                        if(p.fahrer === r.endplatz[j]) rallyePunkte += (j===0?7:5);
+                    val.breakdown.platz.forEach((p,j)=>{
+                        if(p.fahrer===r.endplatz[j]) rallyePunkte += (j===0?7:5);
                         else if(r.endplatz.includes(p.fahrer)) rallyePunkte += 2;
                     });
                 }
-
-                // Power Stage
                 if(val.breakdown?.powerstage){
-                    val.breakdown.powerstage.forEach((p, j) => {
-                        if(p.fahrer === r.powerstage[j]) rallyePunkte += (j===0?4:3);
+                    val.breakdown.powerstage.forEach((p,j)=>{
+                        if(p.fahrer===r.powerstage[j]) rallyePunkte += (j===0?4:3);
                         else if(r.powerstage.includes(p.fahrer)) rallyePunkte += 2;
                     });
                 }
+                if(val.breakdown?.ausfall?.fahrer===r.ausfall) rallyePunkte += 3;
 
-                // Erster Ausfall
-                if(val.breakdown?.ausfall?.fahrer === r.ausfall) rallyePunkte += 3;
-
-                // Punkte nur einmal pro Fahrer summieren
                 if(!punkteMap[name]) punkteMap[name] = 0;
                 punkteMap[name] += rallyePunkte;
 
@@ -529,20 +480,18 @@ function anzeigenSaison() {
         });
     });
 
-    // Nach allen Rallyes die Liste anzeigen
-    Promise.all(promises).then(() => {
+    Promise.all(promises).then(()=>{
         Object.entries(punkteMap)
-            .sort((a,b) => b[1] - a[1]) // absteigend sortieren
-            .forEach(([name, total]) => {
+            .sort((a,b)=>b[1]-a[1])
+            .forEach(([name,total])=>{
                 const li = document.createElement("li");
                 li.innerHTML = `<strong>${name} – ${total} Punkte</strong>`;
-
                 const details = document.createElement("div");
                 details.className = "punkte-breakdown";
 
                 let html = "";
-                rallyes.forEach((r, j) => {
-                    if(r.name === "bitte Rallye auswählen") return;
+                rallyes.forEach((r,j)=>{
+                    if(r.name==="bitte Rallye auswählen") return;
                     const sum = rallyeMap[name][j] || 0;
                     html += `${r.name}: ${sum} Punkte<br>`;
                 });
@@ -631,36 +580,6 @@ function updateBackground(){
         `linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)),
          url('${rallye.bgImage || "images/deinBild.jpg"}') center/cover no-repeat`;
 }
-
-
-document.getElementById("aktualisierenButton").addEventListener("click", function() {
-    // Speichere die aktuelle Rallye-Auswahl
-    const rallyeIndex = document.getElementById("rallyeSelect").value;
-    localStorage.setItem("aktuelleRallye", rallyeIndex);
-
-    // Seite neu laden
-    location.reload();
-});
-
-// Beim Laden die letzte Auswahl wiederherstellen
-document.addEventListener("DOMContentLoaded", function(){
-    const gespeicherteRallye = localStorage.getItem("aktuelleRallye");
-    if(gespeicherteRallye !== null){
-        document.getElementById("rallyeSelect").value = gespeicherteRallye;
-        // Optional: Hintergrund aktualisieren & Tipps laden
-        updateBackground();
-        tippsHolen();
-        ladeEigeneTipps();
-    }
-});
-
-
-
-
-
-
-
-
 
 
 
