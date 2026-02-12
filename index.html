@@ -43,6 +43,29 @@ ul { text-align: left; }
     color: #666;
     margin-bottom: 10px;
 }
+
+#aktualisierenButton {
+    background-color: #1E90FF; /* leuchtendes Blau */
+    color: white;
+    font-weight: bold;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.4s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+#aktualisierenButton:hover {
+    background-color: #63B8FF; /* etwas heller */
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    transform: scale(1.05);
+}
+
+
+
+
+
 </style>
 </head>
 <body>
@@ -587,32 +610,34 @@ function updateBackground(){
 
 
 
+// --- Rallye merken und Aktualisieren Button ---
+const aktualisierenButton = document.getElementById("aktualisierenButton");
 
-
-
-
-//Aktuallisieren 
-
-document.getElementById("aktualisierenButton").addEventListener("click", function() {
-    // Speichere die aktuelle Rallye-Auswahl
-    const rallyeIndex = document.getElementById("rallyeSelect").value;
-    localStorage.setItem("aktuelleRallye", rallyeIndex);
-
+aktualisierenButton.addEventListener("click", function() {
+    // aktuell ausgewählte Rallye merken
+    localStorage.setItem("aktuelleRallye", document.getElementById("rallyeSelect").value);
     // Seite neu laden
     location.reload();
 });
 
-// Beim Laden die letzte Auswahl wiederherstellen
 document.addEventListener("DOMContentLoaded", function(){
+    // gespeicherte Rallye wieder auswählen
     const gespeicherteRallye = localStorage.getItem("aktuelleRallye");
     if(gespeicherteRallye !== null){
-        document.getElementById("rallyeSelect").value = gespeicherteRallye;
-        // Optional: Hintergrund aktualisieren & Tipps laden
-        updateBackground();
-        tippsHolen();
-        ladeEigeneTipps();
+        const rallyeSelect = document.getElementById("rallyeSelect");
+        rallyeSelect.value = gespeicherteRallye;
     }
+
+    // Jetzt die Ranglisten nur einmal aufbauen
+    tippsHolen();
+    ladeEigeneTipps();
 });
+
+
+
+
+
+
 
 
 
