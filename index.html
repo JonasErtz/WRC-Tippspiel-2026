@@ -616,6 +616,19 @@ function updateBackground(){
 }
 
 
+function updateRanglisteStandText() {
+    const idx = parseInt(document.getElementById("rallyeSelect").value);
+    const rallye = rallyes[idx];
+    const el = document.getElementById("ranglisteStandText");
+    if(!el) return;
+
+    if(rallye.wpCompleted !== undefined && rallye.wpTotal !== undefined){
+        el.innerHTML = `Stand nach WP ${rallye.wpCompleted} von ${rallye.wpTotal}:`;
+    } else {
+        el.innerHTML = "";
+    }
+}
+
 
 
 
