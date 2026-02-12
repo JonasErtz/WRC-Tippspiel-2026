@@ -373,6 +373,7 @@ document.addEventListener("DOMContentLoaded", function(){
         tippsHolen();
         ladeEigeneTipps();
         updateBackground();
+        updateRanglisteStandText();
     });
 
 //Countdown sofort aktualisieren 
@@ -416,6 +417,7 @@ function tippsHolen() {
     const idx = parseInt(document.getElementById("rallyeSelect").value);
     db.ref('tipps/' + idx).once('value').then(snap => {
         anzeigen(snap.val() || {});
+        updateRanglisteStandText();
     });
     anzeigenSaison(); // nur einmal pro Rallyewechsel
 }
