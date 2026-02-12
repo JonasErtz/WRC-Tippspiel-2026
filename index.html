@@ -117,9 +117,9 @@ ul { text-align: left; }
 
 
 <h2>📊 Rangliste (aktuelle Rallye)</h2>
-<ul id="rangliste"></ul>
-<div id="ranglisteStandText" style="margin-bottom:10px; font-size:0.9em; color:#555;"></div>
+<h5>Klicke hier um die Ergebnisse zu aktualisieren!</h5>
 <button id="aktualisierenButton">🔄 Live Ergebnisse aktualisieren 🔄</button>
+<ul id="rangliste"></ul>
 
 <h2>🏆 Saison-Rangliste</h2>
 <ul id="saisonRangliste"></ul>
@@ -162,10 +162,7 @@ const rallyes = [
         endplatz: ["Solberg","Evans","Ogier","Fourmaux","Neuville"],
         powerstage: ["Evans","Solberg","Ogier"],
         ausfall: "McErlean",
-        bgImage: "images/montecarlo.jpg"
-        wpCompleted: 17,   // Anzahl der abgeschlossenen Wertungsprüfungen
-        wpTotal: 17       // Gesamtanzahl der Wertungsprüfungen
-    },
+        bgImage: "images/montecarlo.jpg"},
         
     {name:"Schweden",
         rallyeStart: Date.UTC(2026,1,12,18,5,0),
@@ -173,10 +170,7 @@ const rallyes = [
         endplatz: [],
         powerstage: [],
         ausfall: "",
-        bgImage: "images/schweden.jpg"
-        wpCompleted: 0,   // Anzahl der abgeschlossenen Wertungsprüfungen
-        wpTotal: 18       // Gesamtanzahl der Wertungsprüfungen
-    },
+        bgImage: "images/schweden.jpg"},
         
     {name:"Kenia",
         rallyeStart: Date.UTC(2026,2,5,10,0,0),
@@ -417,7 +411,6 @@ function tippsHolen() {
     const idx = parseInt(document.getElementById("rallyeSelect").value);
     db.ref('tipps/' + idx).once('value').then(snap => {
         anzeigen(snap.val() || {});
-        updateRanglisteStandText();  // ✅ hier aufrufen
     });
     anzeigenSaison(); // nur einmal pro Rallyewechsel
 }
@@ -609,27 +602,6 @@ function setFixedDeadline(elementId, timestamp){
     const time = d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
     el.innerHTML = `⏰ Tippabgabe bis: ${date} – ${time} Uhr`;
 }
-
-
-
-function updateRanglisteStandText() {
-    const idx = parseInt(document.getElementById("rallyeSelect").value);
-    const rallye = rallyes[idx];
-    const el = document.getElementById("ranglisteStandText");
-    if(!el) return;
-
-    if(rallye.wpCompleted !== undefined && rallye.wpTotal !== undefined){
-        el.innerHTML = `Stand nach WP ${rallye.wpCompleted} von ${rallye.wpTotal}:`;
-    } else {
-        el.innerHTML = ""; // falls keine WP-Angabe vorhanden
-    }
-}
-
-
-
-
-
-
 
 function updateBackground(){
     const rallye = rallyes[parseInt(document.getElementById("rallyeSelect").value)];
