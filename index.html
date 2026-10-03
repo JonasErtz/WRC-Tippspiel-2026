@@ -145,11 +145,11 @@ let currentUser = null;
 // Auto-Login: User aus localStorage
 currentUser = localStorage.getItem("wrcUser");
 
-const fahrer = ["Armstrong","Bertelli","Evans","Fourmaux","Katsuta","Lappi","McErlean","Munster","Neuville","Ogier","Paddon","Pajari","Serderidis","Sesks","Solberg","Sordo","-","Toyota","Hyundai"];
+const fahrer = ["Armstrong","Bertelli","Evans","Fourmaux","Katsuta","Lappi","McErlean","Munster","Neuville","Ogier","Paddon","Pajari","Serderidis","Sesks","Solberg","Sordo","-"];
 
 const rallyes = [
 
-    {name:"bitte Rallye auswählen",
+    {name:"Weltmeister",
         rallyeStart: Date.UTC(2026,0,22,15,5,0),
         powerstageStart: Date.UTC(2026,0,22,15,5,0),
         endplatz: [" "," ","Toyota"],
@@ -304,13 +304,7 @@ const rallyes = [
  wpTotal: 17     // Gesamtanzahl WPs
     },
         
-    {name:"Weltmeister",
-        rallyeStart: Date.UTC(2026,10,5,10,0,0),
-        powerstageStart: Date.UTC(2026,10,8,15,0,0),
-        endplatz: [" ","Evans","Toyota"],
-        powerstage: [],
-        ausfall: "",
-        bgImage: "images/saudiarabien.jpg"}
+    
 ];
 
 document.addEventListener("DOMContentLoaded", function(){
